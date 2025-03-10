@@ -1,0 +1,79 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="BRGHMC Hospital Office Feedback System - Share your experience with our office services">
+    <meta name="theme-color" content="#d4881d">
+    <title>BRGHMC Office Feedback</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{% static 'images/logo.png' %}">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <link rel="stylesheet" href="{% static 'css/users/index.css' %}">
+</head>
+<body>
+    <!-- Welcome Modal -->
+    <div class="modal-overlay" id="welcomeOverlay">
+        <div class="modal" id="welcomeModal">
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+            <h2 class="modal-title">Welcome to BRGHMC Office Customer Satisfaction Survey</h2>
+            <div class="modal-content">
+                <p>We value your experience with our office services at Bicol Region General Hospital and Geriatric Medical Center.</p>
+                <p>Your feedback helps us:</p>
+                <ul>
+                    <li>Improve our office procedures</li>
+                    <li>Enhance administrative services</li>
+                    <li>Better understand your needs</li>
+                    <li>Create a more efficient office environment</li>
+                </ul>
+                <p>Your responses will be kept strictly confidential.</p>
+            </div>
+        </div>
+    </div>
+
+    <main class="container">
+        <div class="overlay"></div>
+        <div class="content animate__animated animate__fadeIn">
+            <header>
+                <img src="{% static 'images/logo.png' %}" alt="BRGHMC Hospital Logo" class="logo animate__animated animate__pulse animate__infinite animate__slower">
+            </header>
+            
+            <section class="welcome-section">
+                <h1 class="visually-hidden">Welcome to BRGHMC Office Customer Satisfaction Survey</h1>
+                <p class="description animate__animated animate__fadeIn animate__delay-1s">
+                    Ang sarbey na ito ay magsisilbing batayan para mapabuti ang aming serbisyo sa opisina at mabigyan kayo ng magandang karanasan sa pakikipag-ugnayan sa aming mga kawani. Anumang komento o mungkahing inyong ibibigay sa pamamagitan ng sarbey na ito ay lubos na pinahahalagahan at ay ituturing na may lubos na pagiging kumpidensyal.
+                </p>
+                <div class="button-container animate__animated animate__fadeIn animate__delay-2s">
+                    <a href="{% url 'core:feedback_form2' %}" class="feedback-btn">
+                        <span>Share Your Office Feedback</span>
+                    </a>
+                </div>
+
+            </section>
+            
+            <footer class="page-footer">
+                <p class="copyright animate__animated animate__fadeIn animate__delay-2s">
+                    © {% now "Y" %} BRGHMC. All rights reserved.
+                </p>
+            </footer>
+        </div>
+    </main>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="welcomeToast"></div>
+    
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="{% static 'js/users/index.js' %}"></script>
+</body>
+</html> 

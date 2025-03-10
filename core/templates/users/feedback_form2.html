@@ -1,0 +1,228 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Service Excellence Feedback</title>
+    <link rel="stylesheet" href="{% static 'css/users/feedback_form2.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="icon" type="image/png" href="{% static 'images/logo.png' %}">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="{% url 'core:home' %}" class="logo">
+                <img src="{% static 'images/logo.png' %}" alt="Logo">
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-container">
+        <div class="header-box">
+            <div class="header-content">
+                <h1>In pursuit of service excellence...</h1>
+                <p>We would like to know how you find our services rendered for the purpose of improving the same.</p>
+            </div>
+        </div>
+
+        <div class="form-container">
+            <form method="post" class="feedback-form">
+                {% csrf_token %}
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="{{ form.office_section.id_for_label }}">
+                            <i class="fas fa-building"></i>
+                            Office/Section:
+                        </label>
+                        {{ form.office_section }}
+                    </div>
+                    <div class="form-group">
+                        <label for="{{ form.purpose.id_for_label }}">
+                            <i class="fas fa-bullseye"></i>
+                            Purpose:
+                        </label>
+                        {{ form.purpose }}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        <i class="fas fa-calendar-alt"></i>
+                        Survey Accomplishment Date:
+                    </label>
+                    <input type="text" id="survey_date" name="survey_date" readonly>
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.staff_first_name.id_for_label }}">
+                        <i class="fas fa-user"></i>
+                        Name of Staff who rendered the service:
+                    </label>
+                    <div class="name-inputs">
+                        <div class="input-wrapper">
+                            {{ form.staff_first_name }}
+                            <small class="input-hint">(write N/A, if more than one person rendered the service)</small>
+                        </div>
+                        <div class="input-wrapper">
+                            {{ form.staff_last_name }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rating Section -->
+                <div class="rating-section">
+                    <div class="rating-group">
+                        <label class="rating-label">
+                            <i class="fas fa-star"></i>
+                            How Would you rate your overall expectation of the service provider's service?
+                        </label>
+                        <div class="rating-scale">
+                            <div class="rating-options">
+                                {{ form.overall_rating }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="rating-group">
+                        <label class="rating-label">
+                            <i class="fas fa-list-check"></i>
+                            Please show the extent to which you think the service provider and their office possess the features by each statement below:
+                        </label>
+                        
+                        <div class="rating-items">
+                            <div class="rating-item">
+                                <p>The service provider/s provided its service at the timeframe it promises to do so.</p>
+                                <div class="rating-options">
+                                    {{ form.timeframe_rating }}
+                                </div>
+                            </div>
+
+                            <div class="rating-item">
+                                <p>You received prompt service from the service providers.</p>
+                                <div class="rating-options">
+                                    {{ form.prompt_rating }}
+                                </div>
+                            </div>
+
+                            <div class="rating-item">
+                                <p>The service provider/s is/are polite.</p>
+                                <div class="rating-options">
+                                    {{ form.polite_rating }}
+                                </div>
+                            </div>
+
+                            <div class="rating-item">
+                                <p>The service provider/s is/are sensitive to the client's needs.</p>
+                                <div class="rating-options">
+                                    {{ form.sensitive_rating }}
+                                </div>
+                            </div>
+
+                            <div class="rating-item">
+                                <p>The service provider/s is/are properly dressed and appear neat.</p>
+                                <div class="rating-options">
+                                    {{ form.dressed_rating }}
+                                </div>
+                            </div>
+
+                            <div class="rating-item">
+                                <p>The appearance of the physical/virtual facility of the service provider is in keeping with type of service/s provided.</p>
+                                <div class="rating-options">
+                                    {{ form.facility_rating }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quality Rating Section -->
+                    <div class="rating-group">
+                        <label class="rating-label">
+                            <i class="fas fa-award"></i>
+                            Overall, how would you rate the quality of service provided by the service provider/s?
+                        </label>
+                        <div class="rating-scale">
+                            <div class="rating-options quality-rating">
+                                {{ form.quality_rating }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Comments Section -->
+                    <div class="comments-section">
+                        <label class="rating-label">
+                            <i class="fas fa-comment-dots"></i>
+                            For comment, recommendation, concerns, or aspects of our service/s that needs improvement, please write it down below.
+                        </label>
+                        <div class="comments-container">
+                            {{ form.comments }}
+                        </div>
+                    </div>
+
+                    <!-- Respondent Details Section -->
+                    <div class="respondent-section">
+                        <label class="rating-label">
+                            <i class="fas fa-user-circle"></i>
+                            If you wish for us to respond to your feedback, please include your contact details
+                        </label>
+                        <div class="respondent-container">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="{{ form.respondent_first_name.id_for_label }}">First Name:</label>
+                                    {{ form.respondent_first_name }}
+                                </div>
+                                <div class="form-group">
+                                    <label for="{{ form.respondent_last_name.id_for_label }}">Last Name:</label>
+                                    {{ form.respondent_last_name }}
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="{{ form.client_type.id_for_label }}">Client Type:</label>
+                                    {{ form.client_type }}
+                                </div>
+                                <div class="form-group">
+                                    <label for="{{ form.gender.id_for_label }}">Sex:</label>
+                                    {{ form.gender }}
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="{{ form.address.id_for_label }}">Address:</label>
+                                {{ form.address }}
+                            </div>
+
+                            <div class="form-group">
+                                <label for="{{ form.contact_number.id_for_label }}">Contact Number:</label>
+                                {{ form.contact_number }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="submit-btn">
+                    <i class="fas fa-paper-plane"></i> Submit Feedback
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script src="{% static 'js/users/feedback_form2.js' %}"></script>
+    <script>
+        // Set current date in the survey date field
+        document.addEventListener('DOMContentLoaded', function() {
+            const today = new Date();
+            const formattedDate = today.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            document.getElementById('survey_date').value = formattedDate;
+        });
+    </script>
+</body>
+</html>

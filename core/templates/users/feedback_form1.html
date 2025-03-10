@@ -1,0 +1,826 @@
+{% load static %}
+{% load widget_tweaks %}
+{% load feedback_tags %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BRGHMC Feedback Form</title>
+    
+    <!-- Modern UI Dependencies -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="{% static 'css/users/feedback_form1.css' %}" rel="stylesheet">
+
+    <link rel="icon" type="image/png" href="{% static 'images/logo.png' %}">
+    
+</head>
+<body>
+    <!-- Progress Bar -->
+    <div class="progress-bar" style="width: 0%"></div>
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="#">
+                <img src="{% static 'images/logo.png' %}" alt="BRGHMC Logo" height="40" class="me-2">
+                BRGHMC Customer Satisfaction Survey
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container">
+        {% if messages %}
+        <div class="messages mb-4">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <form method="post" id="feedback-form" class="needs-validation" novalidate>
+            {% csrf_token %}
+
+            <!-- Age and Date Section -->
+            <div class="card shadow-sm border-0 rounded-4 mb-4 hover-elevate">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="rounded-circle bg-primary bg-opacity-10 p-3">
+                                <i class="fas fa-user-circle fs-4 text-primary"></i>
+                            </div>
+                            <div>
+                                <label class="form-label mb-0 text-muted small">Edad</label>
+                                <div class="d-flex align-items-center gap-2">
+                                    {{ respondent_form.age|add_class:"form-control form-control-lg border-0 bg-light" }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <div class="text-muted small mb-1">Current Date</div>
+                            <span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill" id="current-date"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Personal Information Section -->
+            <div class="row g-4 mb-4">
+                <!-- Survey Answer -->
+            <div class="col-md-6">
+                    <div class="card shadow-sm border-0 rounded-4 h-100 hover-elevate">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-center gap-3 mb-3">
+                                <div class="rounded-circle bg-info bg-opacity-10 p-3">
+                                    <i class="fas fa-clipboard-list fs-4 text-info"></i>
+                                </div>
+                                <h6 class="card-title mb-0">Sagot ng Sarbey</h6>
+                            </div>
+                            <div class="survey-options">
+                                {{ personal_info_form.survey_answer|add_class:"form-control form-control-lg border-0 bg-light" }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+                <!-- Gender -->
+                <div class="col-md-6">
+                    <div class="card shadow-sm border-0 rounded-4 h-100 hover-elevate">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-center gap-3 mb-3">
+                                <div class="rounded-circle bg-warning bg-opacity-10 p-3">
+                                    <i class="fas fa-venus-mars fs-4 text-warning"></i>
+                                </div>
+                                <h6 class="card-title mb-0">Kasarian</h6>
+                            </div>
+                            <div class="gender-options">
+                                {{ personal_info_form.gender|add_class:"form-control form-control-lg border-0 bg-light" }}
+            </div>
+        </div>
+            </div>
+            </div>
+        </div>
+
+            <!-- Religion and Education Row -->
+            <div class="row g-4 mb-4">
+                <!-- Religion -->
+                <div class="col-md-6">
+                    <div class="card shadow-sm border-0 rounded-4 h-100 hover-elevate">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-center gap-3 mb-3">
+                                <div class="rounded-circle bg-success bg-opacity-10 p-3">
+                                    <i class="fas fa-pray fs-4 text-success"></i>
+                                </div>
+                                <h6 class="card-title mb-0">Relihiyon</h6>
+                            </div>
+                            <div class="religion-options">
+                                {{ personal_info_form.religion|add_class:"form-control form-control-lg border-0 bg-light" }}
+            </div>
+        </div>
+            </div>
+        </div>
+        
+                <!-- Education -->
+                <div class="col-md-6">
+                    <div class="card shadow-sm border-0 rounded-4 h-100 hover-elevate">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-center gap-3 mb-3">
+                                <div class="rounded-circle bg-danger bg-opacity-10 p-3">
+                                    <i class="fas fa-graduation-cap fs-4 text-danger"></i>
+                                </div>
+                                <h6 class="card-title mb-0">Antas ng Edukasyon</h6>
+                            </div>
+                            <div class="education-options">
+                                {{ personal_info_form.education|add_class:"form-control form-control-lg border-0 bg-light" }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Visit Frequency -->
+            <div class="card shadow-sm border-0 rounded-4 mb-4 hover-elevate">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="rounded-circle bg-purple bg-opacity-10 p-3">
+                            <i class="fas fa-hospital fs-4 text-purple"></i>
+                        </div>
+                        <h6 class="card-title mb-0">Gaano kadalas ka bumibisita sa Ospital</h6>
+                    </div>
+                    <div class="visit-options">
+                        {{ personal_info_form.visit_frequency|add_class:"form-control form-control-lg border-0 bg-light" }}
+                    </div>
+            </div>
+        </div>
+        
+            <!-- Citizens Charter Info -->
+            <div class="charter-card card shadow-sm border-0 rounded-4 mb-4 hover-elevate">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="charter-info-icon rounded-circle p-3">
+                            <i class="fas fa-info-circle fs-4 text-white"></i>
+                        </div>
+                        <div>
+                            <h6 class="card-title mb-1 text-white">Citizen's Charter</h6>
+                            <p class="text-white-50 small mb-0">Alamin ang iyong mga karapatan at serbisyo</p>
+                        </div>
+                    </div>
+                    <p class="text-white mb-0 lh-lg">
+                        Ang Citizen's Charter ay ang opisyal na dokumento na sumasalamin sa serbisyon ng isang ahensya ng gobyerno o tanggapan kabilang ang mga kinakailangang dokumento, bayarin, at oras ng pagproseso nito bukod sa iba pang mga kinakailangan.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Charter Awareness -->
+            <div class="charter-awareness-card card shadow-sm border-0 rounded-4 mb-4 hover-elevate">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="rounded-circle bg-primary bg-opacity-10 p-3">
+                            <i class="fas fa-check-circle fs-4 text-primary"></i>
+                        </div>
+                        <div>
+                            <h6 class="card-title mb-1">Citizen's Charter Awareness</h6>
+                            <p class="text-muted small mb-0">Piliin ang naaangkop na sagot tungkol sa iyong kaalaman sa Citizen's Charter</p>
+                        </div>
+                    </div>
+                    <div class="charter-options mt-3">
+                        {{ charter_form.charter_awareness|add_class:"charter-select form-control-lg border-0" }}
+                    </div>
+            </div>
+        </div>
+        
+            <!-- Follow-up Questions Container -->
+            <div class="follow-up-container">
+                <!-- Follow-up Question 1 -->
+                <div id="follow-up-questions-1" class="follow-up-card card shadow-sm border-0 rounded-4 mb-4">
+            <div class="card-body">
+                        <div class="d-flex align-items-center gap-4 mb-4">
+                            <div class="follow-up-icon">
+                                <i class="fas fa-eye fs-4"></i>
+                            </div>
+                            <div>
+                                <h6 class="card-title">Visibility ng Charter</h6>
+                                <p class="text-muted mb-0">Masasabi mo ba na ang Citizen's Charter ng tanggapan ay:</p>
+                            </div>
+                        </div>
+                        <div class="visibility-options">
+                            {{ charter_form.visibility_rating|add_class:"form-select-lg w-100" }}
+                            <div class="form-text mt-3">
+                                <i class="fas fa-info-circle"></i>
+                                <span>Piliin ang naaangkop na sagot base sa iyong karanasan</span>
+                            </div>
+                        </div>
+            </div>
+        </div>
+
+                <!-- Follow-up Question 2 -->
+                <div id="follow-up-questions-2" class="follow-up-card card shadow-sm border-0 rounded-4 mb-4">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center gap-4 mb-4">
+                            <div class="follow-up-icon">
+                                <i class="fas fa-star fs-4"></i>
+                            </div>
+                            <div>
+                                <h6 class="card-title">Helpfulness ng Charter</h6>
+                                <p class="text-muted mb-0">Gaano kalaki nakatulong ang Citizen's Charter sa iyong transaktion o serbisyo:</p>
+                            </div>
+                        </div>
+                        <div class="helpfulness-options">
+                            {{ charter_form.helpfulness_rating|add_class:"form-select-lg w-100" }}
+                            <div class="form-text mt-3">
+                                <i class="fas fa-lightbulb"></i>
+                                <span>Ang iyong feedback ay mahalaga para sa aming pagpapabuti ng serbisyo</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rating Scale -->
+            <div class="rating-scale">
+                <h4 class="rating-scale-header">TAGUBILIN: Piliin sa hanay na tumutugma sa iyong marka para sa bawat tanong:</h4>
+                <div class="rating-scale-container">
+                    <div class="rating-scale-items">
+                        <div class="rating-scale-item">
+                    <span class="emoji">😊</span>
+                    <p>Lubos na<br>Sumasang-ayon</p>
+                </div>
+                        <div class="rating-scale-item">
+                    <span class="emoji">🙂</span>
+                    <p>Sumasang-ayon</p>
+                </div>
+                        <div class="rating-scale-item">
+                    <span class="emoji">😐</span>
+                            <p>Medyo<br>Sumasang-ayon</p>
+                </div>
+                        <div class="rating-scale-item">
+                    <span class="emoji">🙁</span>
+                    <p>Hindi<br>Sumasang-ayon</p>
+                </div>
+                        <div class="rating-scale-item">
+                    <span class="emoji">😢</span>
+                    <p>Lubos na Hindi<br>Sumasang-ayon</p>
+                        </div>
+                </div>
+            </div>
+        </div>
+
+            <!-- A. Imprastraktura at Proseso Section -->
+            <div class="section-header">
+                <h5>A. Imprastraktura at Proseso</h5>
+            </div>
+
+            <!-- Question 1 -->
+            <div class="rating-container" data-question-id="waiting_area_comfort">
+                <div class="question-header">
+                    <h6 class="section-subheader">A. Imprastraktura at Proseso</h6>
+                    <p class="rating-question">Malinis, maayos, at kumportable ang mga lugar ng hintayan.</p>
+                </div>
+                <div class="rating-options">
+                    {% for value, label in infrastructure_form.waiting_area_comfort.field.choices %}
+                    <label class="rating-label" data-rating="{{ value }}">
+                        <input type="radio" name="waiting_area_comfort" value="{{ value }}" class="rating-input">
+                        <div class="emoji-large">
+                            {% if value == 5 %}<span class="emoji">😊</span>{% endif %}
+                            {% if value == 4 %}<span class="emoji">🙂</span>{% endif %}
+                            {% if value == 3 %}<span class="emoji">😐</span>{% endif %}
+                            {% if value == 2 %}<span class="emoji">🙁</span>{% endif %}
+                            {% if value == 1 %}<span class="emoji">😢</span>{% endif %}
+                        </div>
+                        <div class="tooltip">{{ label }}</div>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Question 2 -->
+            <div class="rating-container" data-question-id="bathroom_cleanliness">
+                <div class="question-header">
+                    <h6 class="section-subheader">A. Imprastraktura at Proseso</h6>
+                    <p class="rating-question">Napapanatiling malinis, maayos, at may patuloy na daloy ng tubig ang mga palikuran at paliguan sa loob ng pasilidad.</p>
+                </div>
+                <div class="rating-options">
+                    {% for value, label in infrastructure_form.bathroom_cleanliness.field.choices %}
+                    <label class="rating-label" data-rating="{{ value }}">
+                        <input type="radio" name="bathroom_cleanliness" value="{{ value }}" class="rating-input">
+                        <div class="emoji-large">
+                            {% if value == 5 %}<span class="emoji">😊</span>{% endif %}
+                            {% if value == 4 %}<span class="emoji">🙂</span>{% endif %}
+                            {% if value == 3 %}<span class="emoji">😐</span>{% endif %}
+                            {% if value == 2 %}<span class="emoji">🙁</span>{% endif %}
+                            {% if value == 1 %}<span class="emoji">😢</span>{% endif %}
+                        </div>
+                        <div class="tooltip">{{ label }}</div>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Question 3 -->
+            <div class="rating-container" data-question-id="patient_room_comfort">
+                <div class="question-header">
+                    <h6 class="section-subheader">A. Imprastraktura at Proseso</h6>
+                    <p class="rating-question">Malinis, maayos, at kumpotable ang mga kuwarto ng mga pasyente.</p>
+                </div>
+                <div class="rating-options">
+                    {% for value, label in infrastructure_form.patient_room_comfort.field.choices %}
+                    <label class="rating-label" data-rating="{{ value }}">
+                        <input type="radio" name="patient_room_comfort" value="{{ value }}" class="rating-input">
+                        <div class="emoji-large">
+                            {% if value == 5 %}<span class="emoji">😊</span>{% endif %}
+                            {% if value == 4 %}<span class="emoji">🙂</span>{% endif %}
+                            {% if value == 3 %}<span class="emoji">😐</span>{% endif %}
+                            {% if value == 2 %}<span class="emoji">🙁</span>{% endif %}
+                            {% if value == 1 %}<span class="emoji">😢</span>{% endif %}
+                        </div>
+                        <div class="tooltip">{{ label }}</div>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Question 4 -->
+            <div class="rating-container" data-question-id="transaction_ease">
+                <div class="question-header">
+                    <h6 class="section-subheader">A. Imprastraktura at Proseso</h6>
+                    <p class="rating-question">Ang mga hakbang (kabilang ang pagbayad) para sa aking transaksyon ay madali at simple.</p>
+                </div>
+                <div class="rating-options">
+                    {% for value, label in infrastructure_form.transaction_ease.field.choices %}
+                    <label class="rating-label" data-rating="{{ value }}">
+                        <input type="radio" name="transaction_ease" value="{{ value }}" class="rating-input">
+                        <div class="emoji-large">
+                            {% if value == 5 %}<span class="emoji">😊</span>{% endif %}
+                            {% if value == 4 %}<span class="emoji">🙂</span>{% endif %}
+                            {% if value == 3 %}<span class="emoji">😐</span>{% endif %}
+                            {% if value == 2 %}<span class="emoji">🙁</span>{% endif %}
+                            {% if value == 1 %}<span class="emoji">😢</span>{% endif %}
+                        </div>
+                        <div class="tooltip">{{ label }}</div>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Question 5 -->
+            <div class="rating-container" data-question-id="process_compliance">
+                <div class="question-header">
+                    <h6 class="section-subheader">A. Imprastraktura at Proseso</h6>
+                    <p class="rating-question">Sinunod ng opisina ang mga kinakailangan at hakbang ng transaksyon batay sa impormasyong ibinigay.</p>
+                </div>
+                <div class="rating-options">
+                    {% for value, label in infrastructure_form.process_compliance.field.choices %}
+                    <label class="rating-label" data-rating="{{ value }}">
+                        <input type="radio" name="process_compliance" value="{{ value }}" class="rating-input">
+                        <div class="emoji-large">
+                            {% if value == 5 %}<span class="emoji">😊</span>{% endif %}
+                            {% if value == 4 %}<span class="emoji">🙂</span>{% endif %}
+                            {% if value == 3 %}<span class="emoji">😐</span>{% endif %}
+                            {% if value == 2 %}<span class="emoji">🙁</span>{% endif %}
+                            {% if value == 1 %}<span class="emoji">😢</span>{% endif %}
+                        </div>
+                        <div class="tooltip">{{ label }}</div>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Question 6 -->
+            <div class="rating-container" data-question-id="information_accessibility">
+                <div class="question-header">
+                    <h6 class="section-subheader">A. Imprastraktura at Proseso</h6>
+                    <p class="rating-question">Madali akong nakahanap ng impormasyon tungkol sa transaksyon mula sa opisina o sa website nito.</p>
+                </div>
+                <div class="rating-options">
+                    {% for value, label in infrastructure_form.information_accessibility.field.choices %}
+                    <label class="rating-label" data-rating="{{ value }}">
+                        <input type="radio" name="information_accessibility" value="{{ value }}" class="rating-input">
+                        <div class="emoji-large">
+                            {% if value == 5 %}<span class="emoji">😊</span>{% endif %}
+                            {% if value == 4 %}<span class="emoji">🙂</span>{% endif %}
+                            {% if value == 3 %}<span class="emoji">😐</span>{% endif %}
+                            {% if value == 2 %}<span class="emoji">🙁</span>{% endif %}
+                            {% if value == 1 %}<span class="emoji">😢</span>{% endif %}
+                        </div>
+                        <div class="tooltip">{{ label }}</div>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Question 7 -->
+            <div class="rating-container" data-question-id="transaction_time">
+                <div class="question-header">
+                    <h6 class="section-subheader">A. Imprastraktura at Proseso</h6>
+                    <p class="rating-question">Makatwiran ang inalaan kong oras para sa aking transaksyon.</p>
+                </div>
+                <div class="rating-options">
+                    {% for value, label in infrastructure_form.transaction_time.field.choices %}
+                    <label class="rating-label" data-rating="{{ value }}">
+                        <input type="radio" name="transaction_time" value="{{ value }}" class="rating-input">
+                        <div class="emoji-large">
+                            {% if value == 5 %}<span class="emoji">😊</span>{% endif %}
+                            {% if value == 4 %}<span class="emoji">🙂</span>{% endif %}
+                            {% if value == 3 %}<span class="emoji">😐</span>{% endif %}
+                            {% if value == 2 %}<span class="emoji">🙁</span>{% endif %}
+                            {% if value == 1 %}<span class="emoji">😢</span>{% endif %}
+                        </div>
+                        <div class="tooltip">{{ label }}</div>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- B. Pakikipag-ugnayan sa mga pasyente Section -->
+            <div class="section-header">
+                <h5>B. Pakikipag-ugnayan sa mga pasyente, kamag anak o bantay</h5>
+            </div>
+
+            <!-- Question 1 -->
+            <div class="rating-container" data-question-id="condition_explanation">
+                <div class="question-header">
+                    <h6 class="section-subheader">B. Pakikipag-ugnayan sa mga pasyente</h6>
+                    <p class="rating-question">Ang aking kondisyon, mga pamamaraang medikal at mga tagubilin ay malinaw na ipinaliwanag.</p>
+                </div>
+                <div class="rating-options">
+                    {% for value, label in patient_interaction_form.condition_explanation.field.choices %}
+                    <label class="rating-label" data-rating="{{ value }}">
+                        <input type="radio" name="condition_explanation" value="{{ value }}" class="rating-input">
+                        <div class="emoji-large">
+                            {% if value == 5 %}<span class="emoji">😊</span>{% endif %}
+                            {% if value == 4 %}<span class="emoji">🙂</span>{% endif %}
+                            {% if value == 3 %}<span class="emoji">😐</span>{% endif %}
+                            {% if value == 2 %}<span class="emoji">🙁</span>{% endif %}
+                            {% if value == 1 %}<span class="emoji">😢</span>{% endif %}
+                        </div>
+                        <div class="tooltip">{{ label }}</div>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Question 2 -->
+            <div class="rating-container" data-question-id="cultural_consideration">
+                <div class="question-header">
+                    <h6 class="section-subheader">B. Pakikipag-ugnayan sa mga pasyente</h6>
+                    <p class="rating-question">Ang aming mga pananaw, kultura, at mga paniniwala ay narinig at isinasaalang-alang sa pamamaraan ng paggamot.</p>
+                </div>
+                <div class="rating-options">
+                    {% for value, label in patient_interaction_form.cultural_consideration.field.choices %}
+                    <label class="rating-label" data-rating="{{ value }}">
+                        <input type="radio" name="cultural_consideration" value="{{ value }}" class="rating-input">
+                        <div class="emoji-large">
+                            {% if value == 5 %}<span class="emoji">😊</span>{% endif %}
+                            {% if value == 4 %}<span class="emoji">🙂</span>{% endif %}
+                            {% if value == 3 %}<span class="emoji">😐</span>{% endif %}
+                            {% if value == 2 %}<span class="emoji">🙁</span>{% endif %}
+                            {% if value == 1 %}<span class="emoji">😢</span>{% endif %}
+                        </div>
+                        <div class="tooltip">{{ label }}</div>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Question 3 -->
+            <div class="rating-container" data-question-id="treatment_choice">
+                <div class="question-header">
+                    <h6 class="section-subheader">B. Pakikipag-ugnayan sa mga pasyente</h6>
+                    <p class="rating-question">Binibigyan kami ng pagkakataong magpasya kung aling pamamaraan ng paggamot ang isasagawa.</p>
+                </div>
+                <div class="rating-options">
+                    {% for value, label in patient_interaction_form.treatment_choice.field.choices %}
+                    <label class="rating-label" data-rating="{{ value }}">
+                        <input type="radio" name="treatment_choice" value="{{ value }}" class="rating-input">
+                        <div class="emoji-large">
+                            {% if value == 5 %}<span class="emoji">😊</span>{% endif %}
+                            {% if value == 4 %}<span class="emoji">🙂</span>{% endif %}
+                            {% if value == 3 %}<span class="emoji">😐</span>{% endif %}
+                            {% if value == 2 %}<span class="emoji">🙁</span>{% endif %}
+                            {% if value == 1 %}<span class="emoji">😢</span>{% endif %}
+                        </div>
+                        <div class="tooltip">{{ label }}</div>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Question 4 -->
+            <div class="rating-container" data-question-id="service_delivery">
+                <div class="question-header">
+                    <h6 class="section-subheader">B. Pakikipag-ugnayan sa mga pasyente</h6>
+                    <p class="rating-question">Nakuha ko ang kailangang serbisyo mula sa ospital, o (kung tinanggihan) ang pagtanggi sa kahilingan ay sapat na ipinaliwanag.</p>
+                </div>
+                <div class="rating-options">
+                    {% for value, label in patient_interaction_form.service_delivery.field.choices %}
+                    <label class="rating-label" data-rating="{{ value }}">
+                        <input type="radio" name="service_delivery" value="{{ value }}" class="rating-input">
+                        <div class="emoji-large">
+                            {% if value == 5 %}<span class="emoji">😊</span>{% endif %}
+                            {% if value == 4 %}<span class="emoji">🙂</span>{% endif %}
+                            {% if value == 3 %}<span class="emoji">😐</span>{% endif %}
+                            {% if value == 2 %}<span class="emoji">🙁</span>{% endif %}
+                            {% if value == 1 %}<span class="emoji">😢</span>{% endif %}
+                        </div>
+                        <div class="tooltip">{{ label }}</div>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Question 5 -->
+            <div class="rating-container" data-question-id="payment_fairness">
+                <div class="question-header">
+                    <h6 class="section-subheader">B. Pakikipag-ugnayan sa mga pasyente</h6>
+                    <p class="rating-question">Nagbayad ako ng makatwirang halaga ng mga bayarin para sa aking transaksyon.</p>
+                </div>
+                <div class="rating-options">
+                    {% for value, label in patient_interaction_form.payment_fairness.field.choices %}
+                    <label class="rating-label" data-rating="{{ value }}">
+                        <input type="radio" name="payment_fairness" value="{{ value }}" class="rating-input">
+                        <div class="emoji-large">
+                            {% if value == 5 %}<span class="emoji">😊</span>{% endif %}
+                            {% if value == 4 %}<span class="emoji">🙂</span>{% endif %}
+                            {% if value == 3 %}<span class="emoji">😐</span>{% endif %}
+                            {% if value == 2 %}<span class="emoji">🙁</span>{% endif %}
+                            {% if value == 1 %}<span class="emoji">😢</span>{% endif %}
+                        </div>
+                        <div class="tooltip">{{ label }}</div>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Overall Feedback Section -->
+            <div class="section-header">
+                <h5>
+                    <i class="fas fa-star-half-alt me-2"></i>
+                    C. Pangkalahatang Feedback
+                </h5>
+                <p class="section-subheader">Mangyaring i-rate ang bawat kawani batay sa kanilang serbisyo</p>
+            </div>
+
+            <div class="staff-matrix">
+                <div class="staff-matrix-container">
+                    <div class="staff-rating-header">
+                        <div class="header-label">
+                            <i class="fas fa-users"></i>
+                            Staff Member
+                        </div>
+                        <div class="rating-emoji-header" data-bs-toggle="tooltip" data-bs-placement="top" title="Lubos na Sumasang-ayon">
+                            <span class="emoji">😊</span>
+                            <small>Lubos na<br>Sumasang-ayon</small>
+                        </div>
+                        <div class="rating-emoji-header" data-bs-toggle="tooltip" data-bs-placement="top" title="Sumasang-ayon">
+                            <span class="emoji">🙂</span>
+                            <small>Sumasang-ayon</small>
+                        </div>
+                        <div class="rating-emoji-header" data-bs-toggle="tooltip" data-bs-placement="top" title="Medyo Sumasang-ayon">
+                            <span class="emoji">😐</span>
+                            <small>Medyo<br>Sumasang-ayon</small>
+                        </div>
+                        <div class="rating-emoji-header" data-bs-toggle="tooltip" data-bs-placement="top" title="Hindi Sumasang-ayon">
+                            <span class="emoji">🙁</span>
+                            <small>Hindi<br>Sumasang-ayon</small>
+                        </div>
+                        <div class="rating-emoji-header" data-bs-toggle="tooltip" data-bs-placement="top" title="Lubos na Hindi Sumasang-ayon">
+                            <span class="emoji">😢</span>
+                            <small>Lubos na Hindi<br>Sumasang-ayon</small>
+                        </div>
+                        <div class="rating-emoji-header" data-bs-toggle="tooltip" data-bs-placement="top" title="Hindi Naangkop">
+                            <span class="emoji">❓</span>
+                            <small>Hindi<br>Naangkop</small>
+                        </div>
+                    </div>
+
+                    <div class="staff-matrix-content">
+                        {% for field in staff_rating_form %}
+                    <div class="staff-row">
+                            <div class="staff-label">
+                                <i class="fas fa-user-md"></i>
+                                {{ field.label }}
+                        </div>
+                            <div class="staff-rating-grid">
+                                {% for value, label in field.field.choices %}
+                        <div class="staff-rating-options">
+                                    <input type="radio" 
+                                           name="{{ field.html_name }}" 
+                                           value="{{ value }}" 
+                                           class="staff-rating-radio" 
+                                           id="{{ field.html_name }}_{{ value }}">
+                                    <label for="{{ field.html_name }}_{{ value }}" 
+                                           class="rating-option-label"
+                                           data-bs-toggle="tooltip"
+                                           data-bs-placement="top"
+                                           title="{{ label }}">
+                                        <span class="rating-option-emoji">
+                                            {% if value == 1 %}<span class="emoji">😢</span>{% endif %}
+                                            {% if value == 2 %}<span class="emoji">🙁</span>{% endif %}
+                                            {% if value == 3 %}<span class="emoji">😐</span>{% endif %}
+                                            {% if value == 4 %}<span class="emoji">🙂</span>{% endif %}
+                                            {% if value == 5 %}<span class="emoji">😊</span>{% endif %}
+                                            {% if value == 6 %}<span class="emoji">❓</span>{% endif %}
+                                        </span>
+                                    </label>
+                        </div>
+                                {% endfor %}
+                            </div>
+                            </div>
+                            {% endfor %}
+                    </div>
+                        </div>
+                    </div>
+
+            <!-- Feedback Text Section -->
+            <div class="feedback-text-section">
+                <div class="feedback-card card shadow-sm border-0 rounded-4 mb-4 hover-elevate">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center gap-3 mb-4">
+                            <div class="rounded-circle bg-success bg-opacity-10 p-3">
+                                <i class="fas fa-comment-dots fs-4 text-success"></i>
+                        </div>
+                            <div>
+                                <h5 class="card-title mb-1">Mga Mungkahi at Feedback</h5>
+                                <p class="text-muted small mb-0">Ibahagi ang iyong mga mungkahi para sa aming serbisyo</p>
+                        </div>
+                    </div>
+
+                        <div class="feedback-form-container">
+                            <div class="form-group mb-4">
+                                <div class="feedback-input-wrapper">
+                                    <label for="suggestions" class="feedback-label">
+                                        <i class="fas fa-lightbulb me-2"></i>
+                                        {{ feedback_classification_form.suggestions.label }}
+                                    </label>
+                                    <div class="feedback-textarea-container">
+                                        {{ feedback_classification_form.suggestions|add_class:"form-control feedback-textarea" }}
+                                        <div class="feedback-character-count">
+                                            <span class="current-count">0</span>/<span class="max-count">500</span>
+                        </div>
+                    </div>
+                        </div>
+                    </div>
+
+                            <div class="form-group">
+                                <div class="feedback-input-wrapper">
+                                    <label for="concerns" class="feedback-label">
+                                        <i class="fas fa-exclamation-circle me-2"></i>
+                                        {{ feedback_classification_form.concerns.label }}
+                                    </label>
+                                    <div class="feedback-textarea-container">
+                                        {{ feedback_classification_form.concerns|add_class:"form-control feedback-textarea" }}
+                                        <div class="feedback-character-count">
+                                            <span class="current-count">0</span>/<span class="max-count">500</span>
+                        </div>
+                    </div>
+                        </div>
+                    </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="feedback-classification-matrix" style="display: none;">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header">
+                        <h5 class="mb-0">Feedback Classification Matrix</h5>
+                        <p class="text-muted small mb-0">Please select all applicable categories for your feedback</p>
+                    </div>
+                    <div class="matrix-container">
+                        <div class="matrix-header">
+                            <div class="header-label">Category</div>
+                            <div class="classification-header positive">
+                                <i class="fas fa-thumbs-up mb-2"></i>
+                                <span>Positive</span>
+                            </div>
+                            <div class="classification-header negative">
+                                <i class="fas fa-thumbs-down mb-2"></i>
+                                <span>Negative</span>
+                            </div>
+                            <div class="classification-header suggestion">
+                                <i class="fas fa-lightbulb mb-2"></i>
+                                <span>Suggestion</span>
+                            </div>
+                        </div>
+                        <div class="matrix-content">
+                            {% for category in "timeliness,manpower,attitude,queueing,process,communication,cleanliness,facilities,environment,others"|split:"," %}
+                            <div class="matrix-row">
+                                <div class="matrix-label">
+                                    <i class="fas fa-circle me-2 small"></i>
+                                    {{ category|title }}
+                                </div>
+                                <div class="classification-options">
+                                    <label class="checkbox-wrapper" title="Positive feedback for {{ category|title }}">
+                                        <input type="checkbox" name="{{ category }}_positive" 
+                                               id="{{ category }}_positive" 
+                                               class="classification-checkbox">
+                                        <span class="checkbox-custom"></span>
+                                    </label>
+                                </div>
+                                <div class="classification-options">
+                                    <label class="checkbox-wrapper" title="Negative feedback for {{ category|title }}">
+                                        <input type="checkbox" name="{{ category }}_negative" 
+                                               id="{{ category }}_negative" 
+                                               class="classification-checkbox">
+                                        <span class="checkbox-custom"></span>
+                                    </label>
+                                </div>
+                                <div class="classification-options">
+                                    <label class="checkbox-wrapper" title="Suggestion for {{ category|title }}">
+                                        <input type="checkbox" name="{{ category }}_suggestion" 
+                                               id="{{ category }}_suggestion" 
+                                               class="classification-checkbox">
+                                        <span class="checkbox-custom"></span>
+                                    </label>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mb-5">
+                <button type="submit" class="btn btn-success btn-lg">Submit Feedback</button>
+            </div>
+            </form>
+        </div>
+
+        <!-- Modern UI Dependencies -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+        <script>
+            gsap.registerPlugin(ScrollTrigger);
+        </script>
+        <script src="{% static 'js/users/feedback_form1.js' %}"></script>
+
+        <style>
+            .follow-up-card {
+                transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+                position: relative;
+                overflow: hidden;
+            }
+
+            .follow-up-card::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 4px;
+                background: linear-gradient(90deg, #00C853, #64DD17);
+                transform: scaleX(0);
+                transform-origin: 0 50%;
+                transition: transform 0.6s ease;
+            }
+
+            .follow-up-card.active::before {
+                transform: scaleX(1);
+            }
+
+            .animate-pulse {
+                animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+            }
+
+            @keyframes pulse {
+                0%, 100% {
+                    opacity: 1;
+                }
+                50% {
+                    opacity: 0.5;
+                }
+            }
+
+            .form-select {
+                transition: all 0.3s ease;
+                cursor: pointer;
+            }
+
+            .form-select:hover {
+                background-color: #f8f9fa !important;
+                box-shadow: 0 0 0 0.25rem rgb(255, 255, 255) !important;
+            }
+
+            .form-select:focus {
+                border-color: #ffffff !important;
+                box-shadow: 0 0 0 0.25rem rgb(249, 250, 252) !important;
+            }
+
+            .card-progress {
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                height: 3px;
+                background: linear-gradient(90deg, #00C853, #64DD17);
+                transition: width 0.3s ease;
+            }
+        </style>
+    </body>
+</html>
