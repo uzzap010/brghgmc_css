@@ -1,0 +1,273 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BRGHGMC Admin - Feedback List</title>
+    <link rel="stylesheet" href="{% static 'css/admin/dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'css/admin/feedback.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h2>BRGHGMC Admin</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <ul>
+                    <li>
+                        <a href="{% url 'core:admin_dashboard' %}"><i class="fas fa-home"></i> Dashboard</a>
+                    </li>
+                    <li class="active">
+                        <a href="{% url 'core:admin_feedback' %}"><i class="fas fa-comment-dots"></i> Feedback</a>
+                    </li>
+                    <li>
+                        <a href="#"><i class="fas fa-building"></i> Office Feedback</a>
+                    </li>
+                    <li>
+                        <a href="#"><i class="fas fa-users"></i> Users</a>
+                    </li>
+                    <li>
+                        <a href="#"><i class="fas fa-cog"></i> Settings</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Top Navigation -->
+            <header class="top-nav">
+                <div class="nav-left">
+                    <div class="logo-section">
+                        <i class="fas fa-hospital-user"></i>
+                        <span>BRGHGMC</span>
+                    </div>
+                    <div class="month-filter">
+                        <button class="month-dropdown-toggle">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span>{{ selected_month }}</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                        <div class="month-dropdown-menu">
+                            <div class="month-list">
+                                {% for month in available_months %}
+                                    <a href="?month={{ month|date:'Y-m' }}" 
+                                       class="month-item {% if selected_month_value == month|date:'Y-m' %}active{% endif %}">
+                                        {{ month|date:'F Y' }}
+                                    </a>
+                                {% empty %}
+                                    <span class="month-item">No data available</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="nav-right">
+                    <div class="user-menu">
+                        <div class="dropdown">
+                            <button class="dropdown-toggle">
+                                <div class="user-avatar">
+                                    <img src="{% static 'images/logo.png' %}" alt="BRGHGMC Logo">
+                                </div>
+                                <div class="user-info">
+                                    <span class="user-name">{{ request.session.admin_username }}</span>
+                                    <span class="user-role">Administrator</span>
+                                </div>
+                                <i class="fas fa-chevron-down"></i>
+                            </button>
+                            <div class="dropdown-menu">
+                                <a href="#" class="dropdown-item">
+                                    <i class="fas fa-user"></i>
+                                    Profile
+                                </a>
+                                <div class="dropdown-divider"></div>
+                                <a href="{% url 'core:admin_logout' %}" class="dropdown-item">
+                                    <i class="fas fa-sign-out-alt"></i>
+                                    Logout
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Feedback Content -->
+            <div class="feedback-content">
+                <div class="content-header">
+                    <h1>Survey Feedback List</h1>
+                </div>
+
+                <!-- Feedback List -->
+                <div class="feedback-list">
+                    {% for feedback in feedbacks %}
+                        <div class="feedback-item">
+                            <div class="feedback-icon">
+                                {% if feedback.survey_answer == 'pasyente' %}
+                                    <i class="fas fa-hospital-user"></i>
+                                {% elif feedback.survey_answer == 'kasama' %}
+                                    <i class="fas fa-people-arrows"></i>
+                                {% elif feedback.survey_answer == 'negosyo' %}
+                                    <i class="fas fa-briefcase-medical"></i>
+                                {% else %}
+                                    <i class="fas fa-user-doctor"></i>
+                                {% endif %}
+                            </div>
+                            <div class="feedback-content-wrapper">
+                                <div class="feedback-main">
+                                    <div class="feedback-header">
+                                        <div class="feedback-title-group">
+                                            <h3>
+                                                {% if feedback.survey_answer == 'pasyente' %}
+                                                    Patient Feedback
+                                                {% elif feedback.survey_answer == 'kasama' %}
+                                                    Relatives Feedback
+                                                {% elif feedback.survey_answer == 'negosyo' %}
+                                                    Business Feedback
+                                                {% else %}
+                                                    Employee Feedback
+                                                {% endif %}
+                                            </h3>
+                                            <div class="feedback-badges">
+                                                <span class="badge badge-{{ feedback.survey_answer }}">
+                                                    {% if feedback.gender == 'babae' %}
+                                                        <i class="fas fa-venus"></i> Female
+                                                    {% else %}
+                                                        <i class="fas fa-mars"></i> Male
+                                                    {% endif %}
+                                                </span>
+                                                <span class="badge badge-education">
+                                                    <i class="fas fa-graduation-cap"></i>
+                                                    {% if feedback.education == 'elementary' %}
+                                                        Elementary
+                                                    {% elif feedback.education == 'secondary' %}
+                                                        Secondary
+                                                    {% elif feedback.education == 'vocational' %}
+                                                        Vocational
+                                                    {% elif feedback.education == 'college' %}
+                                                        College
+                                                    {% elif feedback.education == 'postgrad' %}
+                                                        Postgraduate
+                                                    {% else %}
+                                                        No Formal Education
+                                                    {% endif %}
+                                                </span>
+                                                <span class="badge badge-religion">
+                                                    <i class="fas fa-pray"></i>
+                                                    {% if feedback.religion == 'kristiyano' %}
+                                                        Christian
+                                                    {% elif feedback.religion == 'islam' %}
+                                                        Islam
+                                                    {% elif feedback.religion == 'katoliko' %}
+                                                        Roman Catholic
+                                                    {% elif feedback.religion == 'ibang_relihiyon' %}
+                                                        Other Religion
+                                                    {% else %}
+                                                        None
+                                                    {% endif %}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="feedback-meta-info">
+                                            <span class="feedback-id" title="Feedback ID">#{{ feedback.respondent.id }}</span>
+                                            <span class="feedback-date" title="Submission Date">
+                                                <i class="far fa-calendar-alt"></i>
+                                                {{ feedback.respondent.date_submitted|date:"F d, Y" }}
+                                            </span>
+                                            <span class="feedback-time" title="Submission Time">
+                                                <i class="far fa-clock"></i>
+                                                {{ feedback.respondent.date_submitted|time:"g:i A" }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="feedback-details">
+                                        <div class="visit-info">
+                                            <span class="visit-frequency">
+                                                <i class="fas fa-history"></i>
+                                                {% if feedback.visit_frequency == 'once' %}
+                                                    0-1 visits per year
+                                                {% elif feedback.visit_frequency == 'four' %}
+                                                    4-6 visits per year
+                                                {% elif feedback.visit_frequency == 'seven' %}
+                                                    7-11 visits per year
+                                                {% else %}
+                                                    12+ visits per year
+                                                {% endif %}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="feedback-actions">
+                                    <button class="btn-view-details" data-feedback-id="{{ feedback.respondent.id }}">
+                                        <i class="fas fa-external-link-alt"></i>
+                                        View Details
+                                    </button>
+                                    <div class="action-dropdown">
+                                        <button class="btn-more-actions">
+                                            <i class="fas fa-ellipsis-v"></i>
+                                        </button>
+                                        <div class="dropdown-menu">
+                                            <a href="#" class="dropdown-item">
+                                                <i class="fas fa-download"></i>
+                                                Export
+                                            </a>
+                                            <a href="#" class="dropdown-item">
+                                                <i class="fas fa-print"></i>
+                                                Print
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="no-feedback">
+                            <div class="no-data-content">
+                                <i class="fas fa-inbox"></i>
+                                <h3>No Feedback Available</h3>
+                                <p>There are no feedback entries for this period</p>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Pagination -->
+                {% if feedbacks.has_other_pages %}
+                    <div class="pagination-container">
+                        <div class="pagination">
+                            {% if feedbacks.has_previous %}
+                                <a href="?page={{ feedbacks.previous_page_number }}{% if request.GET.month %}&month={{ request.GET.month }}{% endif %}" class="page-link">
+                                    <i class="fas fa-chevron-left"></i>
+                                </a>
+                            {% endif %}
+
+                            {% for num in feedbacks.paginator.page_range %}
+                                {% if feedbacks.number == num %}
+                                    <span class="page-link active">{{ num }}</span>
+                                {% elif num > feedbacks.number|add:'-3' and num < feedbacks.number|add:'3' %}
+                                    <a href="?page={{ num }}{% if request.GET.month %}&month={{ request.GET.month }}{% endif %}" class="page-link">{{ num }}</a>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if feedbacks.has_next %}
+                                <a href="?page={{ feedbacks.next_page_number }}{% if request.GET.month %}&month={{ request.GET.month }}{% endif %}" class="page-link">
+                                    <i class="fas fa-chevron-right"></i>
+                                </a>
+                            {% endif %}
+                        </div>
+                        <a href="#" class="export-button">
+                            <i class="fas fa-download"></i>
+                            Export Data
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <script src="{% static 'js/admin/feedback.js' %}"></script>
+</body>
+</html> 

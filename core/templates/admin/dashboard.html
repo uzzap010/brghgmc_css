@@ -18,11 +18,15 @@
             <nav class="sidebar-nav">
                 <ul>
                     <li class="active">
-                        <a href="#"><i class="fas fa-home"></i> Dashboard</a>
+                        <a href="{% url 'core:admin_dashboard' %}"><i class="fas fa-home"></i> Dashboard</a>
                     </li>
                     <li>
-                        <a href="#"><i class="fas fa-chart-bar"></i> Analytics</a>
+                        <a href="{% url 'core:admin_feedback' %}"><i class="fas fa-comment-dots"></i> Feedback</a>
                     </li>
+                    <li>
+                        <a href="#"><i class="fas fa-building"></i> Office Feedback</a>
+                    </li>
+                    
                     <li>
                         <a href="#"><i class="fas fa-users"></i> Users</a>
                     </li>
@@ -37,22 +41,93 @@
         <div class="main-content">
             <!-- Top Navigation -->
             <header class="top-nav">
-                <div class="logo-section">
-                    <i class="fas fa-hospital-user"></i>
-                    <span>BRGHGMC</span>
-                </div>
-                <div class="user-menu">
-                    <div class="dropdown">
-                        <button class="dropdown-toggle">
-                            <i class="fas fa-user-circle"></i>
-                            <span>{{ request.session.admin_username }}</span>
+                <div class="nav-left">
+                    <div class="logo-section">
+                        <i class="fas fa-hospital-user"></i>
+                        <span>BRGHGMC</span>
+                    </div>
+                    <div class="month-filter">
+                        <button class="month-dropdown-toggle">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span>{{ selected_month }}</span>
                             <i class="fas fa-chevron-down"></i>
                         </button>
-                        <div class="dropdown-menu">
-                            <a href="{% url 'core:admin_logout' %}" class="dropdown-item">
-                                <i class="fas fa-sign-out-alt"></i>
-                                Logout
-                            </a>
+                        <div class="month-dropdown-menu">
+                            <div class="month-list">
+                                {% for month in available_months %}
+                                    <a href="?month={{ month|date:'Y-m' }}" 
+                                       class="month-item {% if selected_month_value == month|date:'Y-m' %}active{% endif %}">
+                                        {{ month|date:'F Y' }}
+                                    </a>
+                                {% empty %}
+                                    <span class="month-item">No data available</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="nav-right">
+                    <div class="quick-actions">
+                        <button class="action-btn notification-toggle" title="Notifications">
+                            <i class="fas fa-bell"></i>
+                            {% if new_feedback_count > 0 %}
+                                <span class="notification-badge">{{ new_feedback_count }}</span>
+                            {% endif %}
+                        </button>
+                        <div class="notification-dropdown">
+                            <div class="notification-header">
+                                <h3>New Feedback</h3>
+                                {% if new_feedback_count > 0 %}
+                                    <span class="notification-count">{{ new_feedback_count }} new</span>
+                                {% endif %}
+                            </div>
+                            <div class="notification-list">
+                                {% if new_feedback %}
+                                    {% for feedback in new_feedback %}
+                                        <div class="notification-item">
+                                            <i class="fas fa-comment-dots"></i>
+                                            <div class="notification-content">
+                                                <p>New feedback received</p>
+                                                <span class="notification-time">{{ feedback.created_at|timesince }} ago</span>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="notification-item empty">
+                                        <p>No new feedback</p>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            {% if new_feedback_count > 0 %}
+                                <div class="notification-footer">
+                                    <a href="{% url 'core:admin_feedback' %}" class="view-all">View All Feedback</a>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="user-menu">
+                        <div class="dropdown">
+                            <button class="dropdown-toggle">
+                                <div class="user-avatar">
+                                    <img src="{% static 'images/logo.png' %}" alt="BRGHGMC Logo">
+                                </div>
+                                <div class="user-info">
+                                    <span class="user-name">{{ request.session.admin_username }}</span>
+                                    <span class="user-role">Administrator</span>
+                                </div>
+                                <i class="fas fa-chevron-down"></i>
+                            </button>
+                            <div class="dropdown-menu">
+                                <a href="#" class="dropdown-item">
+                                    <i class="fas fa-user"></i>
+                                    Profile
+                                </a>
+                                <div class="dropdown-divider"></div>
+                                <a href="{% url 'core:admin_logout' %}" class="dropdown-item">
+                                    <i class="fas fa-sign-out-alt"></i>
+                                    Logout
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -60,6 +135,14 @@
 
             <!-- Dashboard Content -->
             <div class="dashboard-content">
+                <div class="content-header">
+                    <div class="date-info">
+                        <i class="fas fa-calendar"></i>
+                        <span class="current-date"></span>
+                        <i class="fas fa-clock ms-3"></i>
+                        <span class="current-time"></span>
+                    </div>
+                </div>
                 
                 <!-- Stats Cards -->
                 <div class="stats-grid">
@@ -69,25 +152,26 @@
                         </div>
                         <div class="stat-info">
                             <h3>Patient</h3>
-                            <p>1,234</p>
+                            <p>{{ survey_counts.patient }}</p>
                         </div>
                     </div>
                     <div class="stat-card relatives-card">
                         <div class="stat-icon">
-                            <i class="fas fa-users-between-lines"></i>
+                            <i class="fas fa-people-arrows text-3xl text-blue-500"></i>
                         </div>
                         <div class="stat-info">
                             <h3>Relatives</h3>
-                            <p>5,678</p>
+                            <p>{{ survey_counts.relatives }}</p>
                         </div>
                     </div>
+                    
                     <div class="stat-card business-card">
                         <div class="stat-icon">
                             <i class="fas fa-briefcase-medical"></i>
                         </div>
                         <div class="stat-info">
                             <h3>Business</h3>
-                            <p>4.5</p>
+                            <p>{{ survey_counts.business }}</p>
                         </div>
                     </div>
                     <div class="stat-card employee-card">
@@ -96,36 +180,78 @@
                         </div>
                         <div class="stat-info">
                             <h3>Employee</h3>
-                            <p>2</p>
+                            <p>{{ survey_counts.employee }}</p>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Charts Section -->
+                <div class="charts-section">
+                    <div class="chart-grid">
+                        <div class="chart-card">
+                            <h2>Citizens Charter Awareness Distribution</h2>
+                            <div class="chart-container">
+                                <canvas id="charterPieChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-card">
+                            <h2>Survey Respondent Distribution</h2>
+                            <div class="chart-container">
+                                <canvas id="surveyPieChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Monthly Trends Chart -->
+                <div class="chart-card monthly-trends">
+                    <h2>Monthly Survey Response Trends</h2>
+                    <div class="chart-container">
+                        <canvas id="monthlyTrendsChart"></canvas>
                     </div>
                 </div>
 
                 <!-- Recent Activity -->
                 <div class="recent-activity">
-                    <h2>Recent Activity</h2>
+                    <h2>Recent Survey Responses (Last 24 Hours)</h2>
                     <div class="activity-list">
-                        <div class="activity-item">
-                            <i class="fas fa-user-plus"></i>
-                            <div class="activity-info">
-                                <p>New user registration</p>
-                                <span>2 minutes ago</span>
+                        {% if recent_surveys %}
+                            {% for survey in recent_surveys %}
+                                <div class="activity-item">
+                                    {% if survey.survey_answer == 'pasyente' %}
+                                        <i class="fas fa-hospital-user"></i>
+                                    {% elif survey.survey_answer == 'kasama' %}
+                                        <i class="fas fa-people-arrows"></i>
+                                    {% elif survey.survey_answer == 'negosyo' %}
+                                        <i class="fas fa-briefcase-medical"></i>
+                                    {% else %}
+                                        <i class="fas fa-user-doctor"></i>
+                                    {% endif %}
+                                    <div class="activity-info">
+                                        <p>
+                                            {% if survey.survey_answer == 'pasyente' %}
+                                                Patient Survey Response
+                                            {% elif survey.survey_answer == 'kasama' %}
+                                                Relatives Survey Response
+                                            {% elif survey.survey_answer == 'negosyo' %}
+                                                Business Survey Response
+                                            {% else %}
+                                                Employee Survey Response
+                                            {% endif %}
+                                        </p>
+                                        <span>{{ survey.respondent.date_submitted|timesince }} ago</span>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="activity-item">
+                                <i class="fas fa-info-circle"></i>
+                                <div class="activity-info">
+                                    <p>No survey responses in the last 24 hours</p>
+                                    <span>Stay tuned for new responses!</span>
+                                </div>
                             </div>
-                        </div>
-                        <div class="activity-item">
-                            <i class="fas fa-comment"></i>
-                            <div class="activity-info">
-                                <p>New feedback received</p>
-                                <span>15 minutes ago</span>
-                            </div>
-                        </div>
-                        <div class="activity-item">
-                            <i class="fas fa-chart-pie"></i>
-                            <div class="activity-info">
-                                <p>Monthly report generated</p>
-                                <span>1 hour ago</span>
-                            </div>
-                        </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -133,5 +259,10 @@
     </div>
 
     <script src="{% static 'js/admin/dashboard.js' %}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Make chart data available globally
+        window.chartData = JSON.parse('{{ chart_data_json|safe }}');
+    </script>
 </body>
-</html> 
+</html>

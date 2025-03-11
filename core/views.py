@@ -3,13 +3,14 @@ from django.contrib import messages
 from django.views.decorators.http import require_http_methods
 from django.http import JsonResponse
 from django.views import View
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from django.utils import timezone
 import logging
 import traceback
 from django.contrib.auth import authenticate, login
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 from django.utils.decorators import method_decorator
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from .models import (
     Student,
     Respondent,
@@ -37,6 +38,7 @@ from .forms import (
 import json
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
+from django.utils.timesince import timesince
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -135,21 +137,166 @@ def admin_dashboard(request):
         admin_id = request.session.get('admin_id')
         if not admin_id:
             logger.warning("No admin_id in session")
-            request.session.flush()  # Clear invalid session
+            request.session.flush()
             return redirect('core_admin:admin_login')
 
         try:
             admin = AdminAccount.objects.get(id=admin_id)
         except AdminAccount.DoesNotExist:
             logger.warning(f"AdminAccount with id {admin_id} not found")
-            request.session.flush()  # Clear invalid session
+            request.session.flush()
             messages.error(request, 'Your session has expired. Please login again.')
             return redirect('core_admin:admin_login')
+
+        # Get selected month from query parameters or use current month
+        selected_date = request.GET.get('month', None)
+        if selected_date:
+            try:
+                selected_date = datetime.strptime(selected_date, '%Y-%m')
+                month_start = selected_date.replace(day=1)
+                month_end = (month_start.replace(day=28) + timedelta(days=4)).replace(day=1) - timedelta(days=1)
+            except ValueError:
+                selected_date = timezone.now()
+                month_start = selected_date.replace(day=1)
+                month_end = (month_start.replace(day=28) + timedelta(days=4)).replace(day=1) - timedelta(days=1)
+        else:
+            selected_date = timezone.now()
+            month_start = selected_date.replace(day=1)
+            month_end = (month_start.replace(day=28) + timedelta(days=4)).replace(day=1) - timedelta(days=1)
+
+        # Get available months from database
+        available_months = PersonalInformation.objects.dates('respondent__date_submitted', 'month', order='DESC')
+
+        # Get counts for selected month
+        patient_count = PersonalInformation.objects.filter(
+            survey_answer='pasyente',
+            respondent__date_submitted__range=[month_start, month_end]
+        ).count()
+        relatives_count = PersonalInformation.objects.filter(
+            survey_answer='kasama',
+            respondent__date_submitted__range=[month_start, month_end]
+        ).count()
+        business_count = PersonalInformation.objects.filter(
+            survey_answer='negosyo',
+            respondent__date_submitted__range=[month_start, month_end]
+        ).count()
+        employee_count = PersonalInformation.objects.filter(
+            survey_answer='empleyado',
+            respondent__date_submitted__range=[month_start, month_end]
+        ).count()
+
+        # Get new feedback from the last 24 hours
+        last_24_hours = timezone.now() - timedelta(days=1)
+        new_feedback = ServiceExcellenceFeedback.objects.filter(
+            created_at__gte=last_24_hours
+        ).order_by('-created_at')[:5]
+        new_feedback_count = new_feedback.count()
+
+        # Get charter choice statistics for selected month
+        charter_stats = {
+            'Aware and Seen': CitizensCharter.objects.filter(
+                charter_awareness='seen',
+                respondent__date_submitted__range=[month_start, month_end]
+            ).count(),
+            'Aware but Not Seen': CitizensCharter.objects.filter(
+                charter_awareness='heard_not_seen',
+                respondent__date_submitted__range=[month_start, month_end]
+            ).count(),
+            'Learned Upon Seeing': CitizensCharter.objects.filter(
+                charter_awareness='heard_not_seen_2',
+                respondent__date_submitted__range=[month_start, month_end]
+            ).count(),
+            'Not Aware': CitizensCharter.objects.filter(
+                charter_awareness='not_aware',
+                respondent__date_submitted__range=[month_start, month_end]
+            ).count(),
+        }
+
+        # Get monthly data for the last 6 months from selected month
+        monthly_data = []
+        for i in range(5, -1, -1):
+            current_month = month_start - timedelta(days=30*i)
+            current_month_start = current_month.replace(day=1)
+            current_month_end = (current_month_start.replace(day=28) + timedelta(days=4)).replace(day=1) - timedelta(days=1)
+            
+            month_data = {
+                'month': current_month_start.strftime('%B %Y'),
+                'patient': PersonalInformation.objects.filter(
+                    survey_answer='pasyente',
+                    respondent__date_submitted__range=[current_month_start, current_month_end]
+                ).count(),
+                'relatives': PersonalInformation.objects.filter(
+                    survey_answer='kasama',
+                    respondent__date_submitted__range=[current_month_start, current_month_end]
+                ).count(),
+                'business': PersonalInformation.objects.filter(
+                    survey_answer='negosyo',
+                    respondent__date_submitted__range=[current_month_start, current_month_end]
+                ).count(),
+                'employee': PersonalInformation.objects.filter(
+                    survey_answer='empleyado',
+                    respondent__date_submitted__range=[current_month_start, current_month_end]
+                ).count()
+            }
+            monthly_data.append(month_data)
+
+        # Prepare chart data
+        chart_data = {
+            'charter': {
+                'labels': list(charter_stats.keys()),
+                'values': list(charter_stats.values())
+            },
+            'survey': {
+                'labels': ['Patient', 'Relatives', 'Business', 'Employee'],
+                'values': [patient_count, relatives_count, business_count, employee_count]
+            },
+            'monthly': {
+                'labels': [data['month'] for data in monthly_data],
+                'datasets': [
+                    {
+                        'label': 'Patient',
+                        'data': [data['patient'] for data in monthly_data]
+                    },
+                    {
+                        'label': 'Relatives',
+                        'data': [data['relatives'] for data in monthly_data]
+                    },
+                    {
+                        'label': 'Business',
+                        'data': [data['business'] for data in monthly_data]
+                    },
+                    {
+                        'label': 'Employee',
+                        'data': [data['employee'] for data in monthly_data]
+                    }
+                ]
+            }
+        }
+
+        # Get recent survey responses from the last 24 hours
+        last_24_hours = timezone.now() - timedelta(days=1)
+        recent_surveys = PersonalInformation.objects.filter(
+            respondent__date_submitted__gte=last_24_hours
+        ).select_related('respondent').order_by('-respondent__date_submitted')[:5]
 
         context = {
             'admin': admin,
             'total_users': AdminAccount.objects.count(),
             'total_feedback': ServiceExcellenceFeedback.objects.count(),
+            'survey_counts': {
+                'patient': patient_count,
+                'relatives': relatives_count,
+                'business': business_count,
+                'employee': employee_count
+            },
+            'charter_stats': charter_stats,
+            'chart_data_json': json.dumps(chart_data),
+            'recent_surveys': recent_surveys,
+            'available_months': available_months,
+            'selected_month': selected_date.strftime('%B %Y'),
+            'selected_month_value': selected_date.strftime('%Y-%m'),
+            'new_feedback': new_feedback,
+            'new_feedback_count': new_feedback_count
         }
         
         return render(request, 'admin/dashboard.html', context)
@@ -161,6 +308,53 @@ def admin_dashboard(request):
 def admin_logout(request):
     request.session.flush()
     return redirect('core_admin:admin_login')
+
+@admin_required
+def get_dashboard_updates(request):
+    try:
+        # Get new feedback from the last 24 hours
+        last_24_hours = timezone.now() - timedelta(days=1)
+        new_feedback = ServiceExcellenceFeedback.objects.filter(
+            created_at__gte=last_24_hours
+        ).order_by('-created_at')[:5]
+        new_feedback_count = new_feedback.count()
+
+        # Get recent survey responses
+        recent_surveys = PersonalInformation.objects.filter(
+            respondent__date_submitted__gte=last_24_hours
+        ).select_related('respondent').order_by('-respondent__date_submitted')[:5]
+
+        # Prepare feedback data
+        feedback_data = []
+        for feedback in new_feedback:
+            feedback_data.append({
+                'time': feedback.created_at.isoformat(),
+                'timesince': timesince(feedback.created_at),
+                'office': feedback.office_section,
+                'rating': feedback.overall_rating
+            })
+
+        # Prepare survey data
+        survey_data = []
+        for survey in recent_surveys:
+            survey_data.append({
+                'type': survey.survey_answer,
+                'time': survey.respondent.date_submitted.isoformat(),
+                'timesince': timesince(survey.respondent.date_submitted)
+            })
+
+        return JsonResponse({
+            'status': 'success',
+            'new_feedback_count': new_feedback_count,
+            'feedback_data': feedback_data,
+            'survey_data': survey_data
+        })
+    except Exception as e:
+        logger.error(f"Error in get_dashboard_updates: {str(e)}")
+        return JsonResponse({
+            'status': 'error',
+            'message': str(e)
+        }, status=500)
 
 # Homepage View
 def home(request):
@@ -358,3 +552,77 @@ def success_view(request):
 # Feedback Form Page View
 def feedback_form1_view(request):
     return render(request, 'users/feedback_form1.html')
+
+@admin_required
+def admin_feedback(request):
+    try:
+        admin_id = request.session.get('admin_id')
+        if not admin_id:
+            logger.warning("No admin_id in session")
+            request.session.flush()
+            return redirect('core:admin_login')
+
+        try:
+            admin = AdminAccount.objects.get(id=admin_id)
+        except AdminAccount.DoesNotExist:
+            logger.warning(f"AdminAccount with id {admin_id} not found")
+            request.session.flush()
+            messages.error(request, 'Your session has expired. Please login again.')
+            return redirect('core:admin_login')
+
+        # Get selected month from query parameters or use current month
+        selected_date = request.GET.get('month', None)
+        if selected_date:
+            try:
+                selected_date = datetime.strptime(selected_date, '%Y-%m')
+                month_start = selected_date.replace(day=1)
+                month_end = (month_start.replace(day=28) + timedelta(days=4)).replace(day=1) - timedelta(days=1)
+            except ValueError:
+                selected_date = timezone.now()
+                month_start = selected_date.replace(day=1)
+                month_end = (month_start.replace(day=28) + timedelta(days=4)).replace(day=1) - timedelta(days=1)
+        else:
+            selected_date = timezone.now()
+            month_start = selected_date.replace(day=1)
+            month_end = (month_start.replace(day=28) + timedelta(days=4)).replace(day=1) - timedelta(days=1)
+
+        # Get available months from database
+        available_months = PersonalInformation.objects.dates('respondent__date_submitted', 'month', order='DESC')
+
+        # Get feedback for selected month
+        feedbacks = PersonalInformation.objects.filter(
+            respondent__date_submitted__range=[month_start, month_end]
+        ).select_related('respondent').order_by('-respondent__date_submitted')
+
+        # Pagination
+        page = request.GET.get('page', 1)
+        paginator = Paginator(feedbacks, 10)  # Show 10 feedbacks per page
+        try:
+            feedbacks = paginator.page(page)
+        except PageNotAnInteger:
+            feedbacks = paginator.page(1)
+        except EmptyPage:
+            feedbacks = paginator.page(paginator.num_pages)
+
+        # Get new feedback count for notification badge
+        last_24_hours = timezone.now() - timedelta(days=1)
+        new_feedback = ServiceExcellenceFeedback.objects.filter(
+            created_at__gte=last_24_hours
+        ).order_by('-created_at')[:5]
+        new_feedback_count = new_feedback.count()
+
+        context = {
+            'admin': admin,
+            'feedbacks': feedbacks,
+            'available_months': available_months,
+            'selected_month': selected_date.strftime('%B %Y'),
+            'selected_month_value': selected_date.strftime('%Y-%m'),
+            'new_feedback': new_feedback,
+            'new_feedback_count': new_feedback_count
+        }
+        
+        return render(request, 'admin/feedback.html', context)
+    except Exception as e:
+        logger.error(f"Error in admin_feedback: {str(e)}")
+        messages.error(request, 'An error occurred. Please try again.')
+        return redirect('core:admin_login')

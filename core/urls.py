@@ -11,5 +11,7 @@ urlpatterns = [
     path('feedback/success/', views.feedback_success, name='feedback_success'),
     path('login/', views.AdminLoginView.as_view(), name='admin_login'),
     path('dashboard/', views.admin_dashboard, name='admin_dashboard'),
+    path('dashboard/updates/', views.get_dashboard_updates, name='dashboard_updates'),
     path('logout/', views.admin_logout, name='admin_logout'),
+    path('admin/feedback/', views.admin_feedback, name='admin_feedback'),
 ]
