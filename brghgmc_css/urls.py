@@ -18,6 +18,7 @@ from django.contrib import admin
 from django.urls import path, include
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('', include('core.urls')),  # Include core app URLs
+    path('admin/', admin.site.urls),  # Django admin interface
+    path('custom-admin/', include(('core.urls', 'core'), namespace='core_admin')),  # Core app admin URLs
+    path('', include(('core.urls', 'core'), namespace='core')),  # Core app public URLs
 ]

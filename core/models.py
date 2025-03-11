@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils import timezone
+from django.contrib.auth.hashers import make_password, check_password
 
 class Student(models.Model):
     name = models.CharField(max_length=100)
@@ -343,3 +344,25 @@ class ServiceExcellenceFeedback(models.Model):
 
     def __str__(self):
         return f"Feedback from {self.office_section} - {self.created_at.strftime('%Y-%m-%d')}"
+
+class AdminAccount(models.Model):
+    username = models.CharField(max_length=100, unique=True)
+    password = models.CharField(max_length=255)  # Will store hashed password
+    email = models.EmailField(unique=True)
+    full_name = models.CharField(max_length=255)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    last_login = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+        return self.username
+
+    def set_password(self, raw_password):
+        self.password = make_password(raw_password)
+
+    def check_password(self, raw_password):
+        return check_password(raw_password, self.password)
+
+    class Meta:
+        verbose_name = 'Admin Account'
+        verbose_name_plural = 'Admin Accounts'

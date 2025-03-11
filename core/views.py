@@ -3,8 +3,13 @@ from django.contrib import messages
 from django.views.decorators.http import require_http_methods
 from django.http import JsonResponse
 from django.views import View
-from datetime import date
+from datetime import date, datetime
+from django.utils import timezone
 import logging
+import traceback
+from django.contrib.auth import authenticate, login
+from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
+from django.utils.decorators import method_decorator
 from .models import (
     Student,
     Respondent,
@@ -15,7 +20,8 @@ from .models import (
     StaffRating,
     OverallFeedback,
     FeedbackClassification,
-    ServiceExcellenceFeedback
+    ServiceExcellenceFeedback,
+    AdminAccount
 )
 from .forms import (
     RespondentForm,
@@ -28,9 +34,133 @@ from .forms import (
     FeedbackClassificationForm,
     ServiceExcellenceFeedbackForm
 )
+import json
+from django.contrib.auth.decorators import login_required
+from django.conf import settings
 
 # Configure logging
 logger = logging.getLogger(__name__)
+
+def admin_required(view_func):
+    def wrapper(request, *args, **kwargs):
+        if not request.session.get('admin_id'):
+            return redirect('core_admin:admin_login')
+        return view_func(request, *args, **kwargs)
+    return wrapper
+
+class AdminLoginView(View):
+    @method_decorator(ensure_csrf_cookie)
+    def get(self, request):
+        if request.session.get('admin_id'):
+            return redirect('core_admin:admin_dashboard')
+        return render(request, 'admin/login.html')
+
+    @method_decorator(csrf_exempt)
+    def post(self, request):
+        try:
+            # Parse the request body
+            try:
+                if request.content_type == 'application/json':
+                    data = json.loads(request.body)
+                else:
+                    data = request.POST
+            except json.JSONDecodeError:
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'Invalid JSON format in request'
+                }, status=400)
+            
+            username = data.get('username')
+            password = data.get('password')
+            remember = data.get('remember', False)
+
+            if not username or not password:
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'Username and password are required'
+                }, status=400)
+
+            try:
+                admin = AdminAccount.objects.get(username=username)
+                
+                if not admin.is_active:
+                    return JsonResponse({
+                        'status': 'error',
+                        'message': 'This account is inactive'
+                    }, status=401)
+
+                if admin.check_password(password):
+                    request.session.flush()
+                    admin.last_login = timezone.now()
+                    admin.save()
+
+                    request.session['admin_id'] = admin.id
+                    request.session['admin_username'] = admin.username
+                    
+                    if remember:
+                        request.session.set_expiry(86400)
+                    else:
+                        request.session.set_expiry(0)
+                    
+                    request.session.save()
+
+                    return JsonResponse({
+                        'status': 'success',
+                        'redirect_url': '/custom-admin/dashboard/'
+                    })
+                else:
+                    return JsonResponse({
+                        'status': 'error',
+                        'message': 'Invalid password'
+                    }, status=401)
+
+            except AdminAccount.DoesNotExist:
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'Admin account not found'
+                }, status=401)
+
+        except Exception as e:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'An unexpected error occurred'
+            }, status=500)
+
+# Convert function-based view to class-based view
+admin_login = AdminLoginView.as_view()
+
+@admin_required
+def admin_dashboard(request):
+    try:
+        admin_id = request.session.get('admin_id')
+        if not admin_id:
+            logger.warning("No admin_id in session")
+            request.session.flush()  # Clear invalid session
+            return redirect('core_admin:admin_login')
+
+        try:
+            admin = AdminAccount.objects.get(id=admin_id)
+        except AdminAccount.DoesNotExist:
+            logger.warning(f"AdminAccount with id {admin_id} not found")
+            request.session.flush()  # Clear invalid session
+            messages.error(request, 'Your session has expired. Please login again.')
+            return redirect('core_admin:admin_login')
+
+        context = {
+            'admin': admin,
+            'total_users': AdminAccount.objects.count(),
+            'total_feedback': ServiceExcellenceFeedback.objects.count(),
+        }
+        
+        return render(request, 'admin/dashboard.html', context)
+    except Exception as e:
+        logger.error(f"Error in admin_dashboard: {str(e)}")
+        messages.error(request, 'An error occurred. Please try again.')
+        return redirect('core_admin:admin_login')
+
+def admin_logout(request):
+    request.session.flush()
+    return redirect('core_admin:admin_login')
 
 # Homepage View
 def home(request):
@@ -71,7 +201,6 @@ def feedback_form2(request):
                 print("\nError occurred while saving:")
                 print(f"Error type: {type(e).__name__}")
                 print(f"Error message: {str(e)}")
-                import traceback
                 print("Full traceback:")
                 print(traceback.format_exc())
                 return JsonResponse({'status': 'error', 'message': str(e)}, status=500)

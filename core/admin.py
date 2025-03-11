@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django import forms
 from .models import (
     Respondent,
     PersonalInformation,
@@ -8,8 +9,40 @@ from .models import (
     StaffRating,
     OverallFeedback,
     FeedbackClassification,
-    ServiceExcellenceFeedback
+    ServiceExcellenceFeedback,
+    AdminAccount
 )
+
+class AdminAccountAdminForm(forms.ModelForm):
+    password = forms.CharField(widget=forms.PasswordInput, required=False)
+    confirm_password = forms.CharField(widget=forms.PasswordInput, required=False)
+
+    class Meta:
+        model = AdminAccount
+        fields = ('username', 'email', 'full_name', 'is_active', 'password')
+
+    def clean(self):
+        cleaned_data = super().clean()
+        password = cleaned_data.get('password')
+        confirm_password = cleaned_data.get('confirm_password')
+
+        if password and confirm_password and password != confirm_password:
+            raise forms.ValidationError("Passwords do not match")
+        return cleaned_data
+
+@admin.register(AdminAccount)
+class AdminAccountAdmin(admin.ModelAdmin):
+    form = AdminAccountAdminForm
+    list_display = ('username', 'email', 'full_name', 'is_active', 'last_login')
+    list_filter = ('is_active', 'created_at')
+    search_fields = ('username', 'email', 'full_name')
+    readonly_fields = ('created_at', 'last_login')
+    ordering = ('-created_at',)
+    
+    def save_model(self, request, obj, form, change):
+        if form.cleaned_data.get('password'):
+            obj.set_password(form.cleaned_data['password'])
+        super().save_model(request, obj, form, change)
 
 @admin.register(Respondent)
 class RespondentAdmin(admin.ModelAdmin):
