@@ -85,10 +85,67 @@
                                 {% if new_feedback %}
                                     {% for feedback in new_feedback %}
                                         <div class="notification-item">
-                                            <i class="fas fa-comment-dots"></i>
-                                            <div class="notification-content">
-                                                <p>New feedback received</p>
-                                                <span class="notification-time">{{ feedback.created_at|timesince }} ago</span>
+                                            {% if feedback.survey_answer == 'pasyente' %}
+                                                <i class="fas fa-hospital-user"></i>
+                                                <div class="notification-content">
+                                                    <p>New Patient Feedback</p>
+                                                    <div class="notification-details">
+                                                        <span class="badge badge-pasyente">Patient</span>
+                                                        {% if feedback.gender == 'babae' %}
+                                                            <span class="badge badge-gender"><i class="fas fa-venus"></i> Female</span>
+                                                        {% else %}
+                                                            <span class="badge badge-gender"><i class="fas fa-mars"></i> Male</span>
+                                                        {% endif %}
+                                                    </div>
+                                                    <span class="notification-time">{{ feedback.created_at|timesince }} ago</span>
+                                                </div>
+                                            {% elif feedback.survey_answer == 'kasama' %}
+                                                <i class="fas fa-people-arrows"></i>
+                                                <div class="notification-content">
+                                                    <p>New Relatives Feedback</p>
+                                                    <div class="notification-details">
+                                                        <span class="badge badge-kasama">Relatives</span>
+                                                        {% if feedback.gender == 'babae' %}
+                                                            <span class="badge badge-gender"><i class="fas fa-venus"></i> Female</span>
+                                                        {% else %}
+                                                            <span class="badge badge-gender"><i class="fas fa-mars"></i> Male</span>
+                                                        {% endif %}
+                                                    </div>
+                                                    <span class="notification-time">{{ feedback.created_at|timesince }} ago</span>
+                                                </div>
+                                            {% elif feedback.survey_answer == 'negosyo' %}
+                                                <i class="fas fa-briefcase-medical"></i>
+                                                <div class="notification-content">
+                                                    <p>New Business Feedback</p>
+                                                    <div class="notification-details">
+                                                        <span class="badge badge-negosyo">Business</span>
+                                                        {% if feedback.gender == 'babae' %}
+                                                            <span class="badge badge-gender"><i class="fas fa-venus"></i> Female</span>
+                                                        {% else %}
+                                                            <span class="badge badge-gender"><i class="fas fa-mars"></i> Male</span>
+                                                        {% endif %}
+                                                    </div>
+                                                    <span class="notification-time">{{ feedback.created_at|timesince }} ago</span>
+                                                </div>
+                                            {% else %}
+                                                <i class="fas fa-user-doctor"></i>
+                                                <div class="notification-content">
+                                                    <p>New Employee Feedback</p>
+                                                    <div class="notification-details">
+                                                        <span class="badge badge-empleyado">Employee</span>
+                                                        {% if feedback.gender == 'babae' %}
+                                                            <span class="badge badge-gender"><i class="fas fa-venus"></i> Female</span>
+                                                        {% else %}
+                                                            <span class="badge badge-gender"><i class="fas fa-mars"></i> Male</span>
+                                                        {% endif %}
+                                                    </div>
+                                                    <span class="notification-time">{{ feedback.created_at|timesince }} ago</span>
+                                                </div>
+                                            {% endif %}
+                                            <div class="notification-rating">
+                                                <span class="rating-badge rating-{{ feedback.overall_rating }}">
+                                                    {{ feedback.overall_rating }}/7
+                                                </span>
                                             </div>
                                         </div>
                                     {% endfor %}

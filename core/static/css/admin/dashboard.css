@@ -697,7 +697,7 @@ body {
     position: absolute;
     top: 100%;
     right: 0;
-    width: 300px;
+    width: 350px;
     background: white;
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -733,17 +733,18 @@ body {
 }
 
 .notification-list {
-    max-height: 300px;
+    max-height: 400px;
     overflow-y: auto;
 }
 
 .notification-item {
-    padding: 12px 15px;
+    padding: 15px;
     display: flex;
     align-items: flex-start;
     gap: 12px;
     border-bottom: 1px solid #eee;
     transition: background-color 0.2s;
+    position: relative;
 }
 
 .notification-item:hover {
@@ -751,9 +752,30 @@ body {
 }
 
 .notification-item i {
-    color: #4dabf7;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
     font-size: 16px;
-    margin-top: 2px;
+    color: white;
+}
+
+.notification-item .fa-hospital-user {
+    background-color: #00ff7b;
+}
+
+.notification-item .fa-people-arrows {
+    background-color: #ff6b6b;
+}
+
+.notification-item .fa-briefcase-medical {
+    background-color: #4dabf7;
+}
+
+.notification-item .fa-user-doctor {
+    background-color: #fab005;
 }
 
 .notification-content {
@@ -761,16 +783,23 @@ body {
 }
 
 .notification-content p {
-    margin: 0;
+    margin: 0 0 8px 0;
     font-size: 14px;
+    font-weight: 500;
     color: #333;
+}
+
+.notification-details {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
 }
 
 .notification-time {
     display: block;
     font-size: 12px;
     color: #666;
-    margin-top: 4px;
 }
 
 .notification-item.empty {
@@ -794,4 +823,102 @@ body {
 
 .view-all:hover {
     text-decoration: underline;
+}
+
+/* Badge styles for notification items */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.badge i {
+    width: auto;
+    height: auto;
+    font-size: 10px;
+    background: none;
+}
+
+.badge-pasyente {
+    background-color: #E3F2FD;
+    color: #1976D2;
+}
+
+.badge-kasama {
+    background-color: #F3E5F5;
+    color: #7B1FA2;
+}
+
+.badge-negosyo {
+    background-color: #E8F5E9;
+    color: #388E3C;
+}
+
+.badge-empleyado {
+    background-color: #FFF3E0;
+    color: #F57C00;
+}
+
+.badge-gender {
+    background-color: #E8EAF6;
+    color: #3949AB;
+}
+
+/* Rating badge styles */
+.notification-rating {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+}
+
+.rating-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.rating-7 {
+    background-color: #E8F5E9;
+    color: #2E7D32;
+}
+
+.rating-6 {
+    background-color: #F1F8E9;
+    color: #558B2F;
+}
+
+.rating-5 {
+    background-color: #F9FBE7;
+    color: #827717;
+}
+
+.rating-4 {
+    background-color: #FFF3E0;
+    color: #EF6C00;
+}
+
+.rating-3 {
+    background-color: #FBE9E7;
+    color: #D84315;
+}
+
+.rating-2 {
+    background-color: #FFEBEE;
+    color: #C62828;
+}
+
+.rating-1 {
+    background-color: #FFEBEE;
+    color: #B71C1C;
+}
+
+.rating-0 {
+    background-color: #EEEEEE;
+    color: #424242;
 }

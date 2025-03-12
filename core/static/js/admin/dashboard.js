@@ -197,7 +197,9 @@ document.addEventListener('DOMContentLoaded', function() {
             day: 'numeric' 
         };
         const dateElement = document.querySelector('.current-date');
-        dateElement.textContent = now.toLocaleDateString('en-US', dateOptions);
+        if (dateElement) {
+            dateElement.textContent = now.toLocaleDateString('en-US', dateOptions);
+        }
         
         // Update time
         const timeOptions = { 
@@ -207,7 +209,9 @@ document.addEventListener('DOMContentLoaded', function() {
             hour12: true 
         };
         const timeElement = document.querySelector('.current-time');
-        timeElement.textContent = now.toLocaleTimeString('en-US', timeOptions);
+        if (timeElement) {
+            timeElement.textContent = now.toLocaleTimeString('en-US', timeOptions);
+        }
     }
 
     // Initial update
@@ -216,44 +220,82 @@ document.addEventListener('DOMContentLoaded', function() {
     // Update every second
     setInterval(updateDateTime, 1000);
 
-    // User dropdown
+    // Initialize dropdowns
+    const monthFilter = document.querySelector('.month-filter');
     const userDropdown = document.querySelector('.user-menu .dropdown');
-    const userDropdownToggle = userDropdown.querySelector('.dropdown-toggle');
-
-    // Notification dropdown
+    const userDropdownToggle = userDropdown ? userDropdown.querySelector('.dropdown-toggle') : null;
     const notificationToggle = document.querySelector('.notification-toggle');
     const notificationDropdown = document.querySelector('.notification-dropdown');
+
+    // Month filter dropdown toggle
+    if (monthFilter) {
+        const monthDropdownToggle = monthFilter.querySelector('.month-dropdown-toggle');
+        if (monthDropdownToggle) {
+            monthDropdownToggle.addEventListener('click', function(e) {
+                e.stopPropagation();
+                monthFilter.classList.toggle('active');
+                if (notificationDropdown && notificationDropdown.classList.contains('active')) {
+                    notificationDropdown.classList.remove('active');
+                }
+                if (userDropdown && userDropdown.classList.contains('active')) {
+                    userDropdown.classList.remove('active');
+                }
+            });
+        }
+    }
 
     // Toggle notification dropdown
     if (notificationToggle && notificationDropdown) {
         notificationToggle.addEventListener('click', function(e) {
             e.stopPropagation();
             notificationDropdown.classList.toggle('active');
-            if (document.querySelector('.user-menu .dropdown.active')) {
-                document.querySelector('.user-menu .dropdown').classList.remove('active');
+            if (userDropdown && userDropdown.classList.contains('active')) {
+                userDropdown.classList.remove('active');
             }
-            if (document.querySelector('.month-filter.active')) {
-                document.querySelector('.month-filter').classList.remove('active');
+            if (monthFilter && monthFilter.classList.contains('active')) {
+                monthFilter.classList.remove('active');
+            }
+        });
+    }
+
+    // Toggle user dropdown
+    if (userDropdownToggle && userDropdown) {
+        userDropdownToggle.addEventListener('click', function(e) {
+            e.stopPropagation();
+            userDropdown.classList.toggle('active');
+            if (notificationDropdown && notificationDropdown.classList.contains('active')) {
+                notificationDropdown.classList.remove('active');
+            }
+            if (monthFilter && monthFilter.classList.contains('active')) {
+                monthFilter.classList.remove('active');
             }
         });
     }
 
     // Close dropdowns when clicking outside
     document.addEventListener('click', function(e) {
-        if (!monthFilter.contains(e.target)) {
+        if (monthFilter && !monthFilter.contains(e.target)) {
             monthFilter.classList.remove('active');
         }
         if (notificationDropdown && !notificationToggle.contains(e.target) && !notificationDropdown.contains(e.target)) {
             notificationDropdown.classList.remove('active');
+        }
+        if (userDropdown && !userDropdown.contains(e.target)) {
+            userDropdown.classList.remove('active');
         }
     });
 
     // Close dropdowns when pressing escape key
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
-            monthFilter.classList.remove('active');
+            if (monthFilter) {
+                monthFilter.classList.remove('active');
+            }
             if (notificationDropdown) {
                 notificationDropdown.classList.remove('active');
+            }
+            if (userDropdown) {
+                userDropdown.classList.remove('active');
             }
         }
     });
@@ -266,7 +308,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 e.preventDefault();
                 return;
             }
-            monthFilter.classList.remove('active');
+            if (monthFilter) {
+                monthFilter.classList.remove('active');
+            }
         });
     });
 
