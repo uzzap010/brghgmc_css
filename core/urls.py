@@ -1,4 +1,5 @@
-from django.urls import path
+from django.contrib import admin
+from django.urls import path, include
 from . import views
 
 app_name = 'core'
@@ -14,4 +15,6 @@ urlpatterns = [
     path('dashboard/updates/', views.get_dashboard_updates, name='dashboard_updates'),
     path('logout/', views.admin_logout, name='admin_logout'),
     path('admin/feedback/', views.admin_feedback, name='admin_feedback'),
+    path('export_feedback/', views.export_feedback, name='export_feedback'),
+    path('admin/', admin.site.urls),  # Include the default Django admin URLs
 ]

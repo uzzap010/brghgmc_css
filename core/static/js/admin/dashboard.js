@@ -248,26 +248,14 @@ document.addEventListener('DOMContentLoaded', function() {
     if (notificationToggle && notificationDropdown) {
         notificationToggle.addEventListener('click', function(e) {
             e.stopPropagation();
-            notificationDropdown.classList.toggle('active');
+            notificationDropdown.classList.toggle('show');
+            
+            // Close other dropdowns when opening notifications
+            if (monthFilter && monthFilter.classList.contains('active')) {
+                monthFilter.classList.remove('active');
+            }
             if (userDropdown && userDropdown.classList.contains('active')) {
                 userDropdown.classList.remove('active');
-            }
-            if (monthFilter && monthFilter.classList.contains('active')) {
-                monthFilter.classList.remove('active');
-            }
-        });
-    }
-
-    // Toggle user dropdown
-    if (userDropdownToggle && userDropdown) {
-        userDropdownToggle.addEventListener('click', function(e) {
-            e.stopPropagation();
-            userDropdown.classList.toggle('active');
-            if (notificationDropdown && notificationDropdown.classList.contains('active')) {
-                notificationDropdown.classList.remove('active');
-            }
-            if (monthFilter && monthFilter.classList.contains('active')) {
-                monthFilter.classList.remove('active');
             }
         });
     }
@@ -278,7 +266,7 @@ document.addEventListener('DOMContentLoaded', function() {
             monthFilter.classList.remove('active');
         }
         if (notificationDropdown && !notificationToggle.contains(e.target) && !notificationDropdown.contains(e.target)) {
-            notificationDropdown.classList.remove('active');
+            notificationDropdown.classList.remove('show');
         }
         if (userDropdown && !userDropdown.contains(e.target)) {
             userDropdown.classList.remove('active');
@@ -292,7 +280,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 monthFilter.classList.remove('active');
             }
             if (notificationDropdown) {
-                notificationDropdown.classList.remove('active');
+                notificationDropdown.classList.remove('show');
             }
             if (userDropdown) {
                 userDropdown.classList.remove('active');
@@ -436,4 +424,4 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Initial update
     updateDashboard();
-}); 
+});

@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils import timezone
 from django.contrib.auth.hashers import make_password, check_password
+from datetime import timedelta
 
 class Student(models.Model):
     name = models.CharField(max_length=100)
@@ -366,3 +367,9 @@ class AdminAccount(models.Model):
     class Meta:
         verbose_name = 'Admin Account'
         verbose_name_plural = 'Admin Accounts'
+
+class Feedback(models.Model):
+    # ... existing fields ...
+
+    def is_new(self):
+        return self.date_submitted >= timezone.now() - timedelta(days=1)  # Consider feedback new if submitted within the last day

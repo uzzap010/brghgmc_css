@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="{% static 'css/admin/dashboard.css' %}">
     <link rel="stylesheet" href="{% static 'css/admin/feedback.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="icon" type="image/png" href="{% static 'images/logo.png' %}">
 </head>
 <body>
     <div class="dashboard-container">
@@ -104,7 +105,7 @@
                 <!-- Feedback List -->
                 <div class="feedback-list">
                     {% for feedback in feedbacks %}
-                        <div class="feedback-item">
+                        <div class="feedback-item {% if feedback.is_new %}new-feedback{% endif %}">
                             <div class="feedback-icon">
                                 {% if feedback.survey_answer == 'pasyente' %}
                                     <i class="fas fa-hospital-user"></i>
@@ -268,6 +269,29 @@
         </div>
     </div>
 
+    <!-- Export Modal -->
+    <div id="exportModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Select Date Range for Export</h2>
+            <form id="exportForm">
+                <label for="startDate">Start Date:</label>
+                <input type="date" id="startDate" name="start_date" required>
+                <label for="endDate">End Date:</label>
+                <input type="date" id="endDate" name="end_date" required>
+                <button type="submit" class="btn-export">Export</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Success Popup -->
+    <div id="successPopup" class="success-popup">
+        <div class="popup-content">
+            <i class="fas fa-check-circle"></i>
+            <p>Export Successful!</p>
+        </div>
+    </div>
+
     <script src="{% static 'js/admin/feedback.js' %}"></script>
 </body>
-</html> 
+</html>

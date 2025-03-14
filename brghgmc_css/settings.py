@@ -137,3 +137,11 @@ SESSION_COOKIE_AGE = 86400  # 24 hours in seconds
 SESSION_COOKIE_SECURE = False  # Set to True in production with HTTPS
 SESSION_COOKIE_HTTPONLY = True
 SESSION_SAVE_EVERY_REQUEST = True
+
+# Authentication settings
+LOGIN_URL = 'login'  # Your custom login URL
+LOGOUT_URL = 'logout'  # Your custom logout URL
+LOGIN_REDIRECT_URL = 'admin_dashboard'  # Redirect after login
+
+# Ensure the Django admin uses its default login view
+ADMIN_LOGIN_URL = '/admin/login/'

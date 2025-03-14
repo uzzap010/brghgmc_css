@@ -12,6 +12,7 @@ from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 from django.utils.decorators import method_decorator
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from .models import (
+    Feedback,
     Student,
     Respondent,
     PersonalInformation,
@@ -39,6 +40,11 @@ import json
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from django.utils.timesince import timesince
+import csv
+from django.http import HttpResponse
+import openpyxl
+from openpyxl.styles import Font, Alignment
+import xlsxwriter
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -626,3 +632,229 @@ def admin_feedback(request):
         logger.error(f"Error in admin_feedback: {str(e)}")
         messages.error(request, 'An error occurred. Please try again.')
         return redirect('core:admin_login')
+
+from django.http import HttpResponse
+import xlsxwriter
+from datetime import datetime, date
+
+def export_feedback(request):
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+
+    # Create an in-memory output file for the new workbook.
+    output = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    output['Content-Disposition'] = f'attachment; filename="feedback_{start_date}_to_{end_date}.xlsx"'
+
+    # Create a workbook and add worksheets.
+    workbook = xlsxwriter.Workbook(output, {'in_memory': True})
+    
+    # Add formats
+    bold = workbook.add_format({'bold': True})
+    header_format = workbook.add_format({'bold': True, 'font_size': 20, 'align': 'center'})
+    subheader_format = workbook.add_format({'bold': True, 'font_size': 16, 'align': 'center'})
+    cell_format = workbook.add_format({'text_wrap': True})
+
+    # Function to write headers and data to a worksheet
+    def write_data_to_sheet(worksheet, headers, data, workbook):
+        # Define formats
+        header_format = workbook.add_format({
+            'bold': True, 
+            'font_size': 40, 
+            'align': 'center', 
+            'valign': 'vcenter', 
+            'bg_color': '#3D925F', 
+            'font_color': 'white'
+        })
+        subheader_format = workbook.add_format({
+            'bold': True, 
+            'font_size': 20, 
+            'align': 'center', 
+            'valign': 'vcenter', 
+            'bg_color': '#3D925F', 
+            'font_color': 'white'
+        })
+        header_cell_format = workbook.add_format({
+            'bold': True, 
+            'bg_color': '#E7AB38', 
+            'align': 'center', 
+            'valign': 'vcenter'
+        })
+        cell_format = workbook.add_format({
+            'text_wrap': True, 
+            'align': 'center', 
+            'valign': 'vcenter'
+        })
+        date_format = workbook.add_format({'num_format': 'yyyy-mm-dd'})
+
+        # Merge cells for the main header and subheader
+        worksheet.merge_range('A1:AG1', 'BICOL REGION GENERAL HOSPITAL AND GERIATRIC MEDICAL CENTER', header_format)
+        worksheet.merge_range('A2:AG2', 'HOSPITAL CLIENT EXPERIENCE SURVEY', subheader_format)
+
+        # Insert logo
+        try:
+            worksheet.insert_image('Z1', 'static/images/logo.png', {'x_scale': 0.5, 'y_scale': 0.5})
+        except FileNotFoundError:
+            print("Logo image not found. Please check the path.")
+
+        # Write the header row
+        for col_num, header in enumerate(headers):
+            worksheet.write(3, col_num, header, header_cell_format)
+
+        # Write the data rows
+        row_num = 4
+        for row_data in data:
+            for col_num, cell_data in enumerate(row_data):
+                if cell_data is None or cell_data == '':
+                    worksheet.write(row_num, col_num, '', cell_format)
+                elif isinstance(cell_data, (int, float)):
+                    worksheet.write(row_num, col_num, cell_data, cell_format)
+                elif isinstance(cell_data, date):
+                    worksheet.write(row_num, col_num, cell_data, date_format)
+                else:
+                    worksheet.write(row_num, col_num, str(cell_data), cell_format)
+            row_num += 1
+
+        # Adjust column widths for better readability
+        for col_num in range(len(headers)):
+            worksheet.set_column(col_num, col_num, 20)
+
+    # Respondent data
+    respondent_headers = ['Respondent ID', 'Age', 'Date Submitted']
+    respondent_data = [
+        [respondent.id, respondent.age, respondent.date_submitted.date()]
+        for respondent in Respondent.objects.filter(date_submitted__range=[start_date, end_date])
+    ]
+    respondent_sheet = workbook.add_worksheet('Respondents')
+    write_data_to_sheet(respondent_sheet, respondent_headers, respondent_data, workbook)
+
+    # Personal Information data
+    personal_info_headers = [
+        'Respondent ID', 'Survey Answer', 'Gender', 'Religion', 'Education', 'Visit Frequency'
+    ]
+    personal_info_data = [
+        [
+            info.respondent.id, info.get_survey_answer_display(), info.get_gender_display(),
+            info.get_religion_display(), info.get_education_display(), info.get_visit_frequency_display()
+        ]
+        for info in PersonalInformation.objects.filter(respondent__date_submitted__range=[start_date, end_date])
+    ]
+    personal_info_sheet = workbook.add_worksheet('Personal Information')
+    write_data_to_sheet(personal_info_sheet, personal_info_headers, personal_info_data, workbook)
+
+    # Citizens Charter data
+    citizens_charter_headers = [
+        'Respondent ID', 'Charter Awareness', 'Visibility Rating', 'Helpfulness Rating'
+    ]
+    citizens_charter_data = [
+        [
+            charter.respondent.id, charter.get_charter_awareness_display(),
+            charter.get_visibility_rating_display(), charter.get_helpfulness_rating_display()
+        ]
+        for charter in CitizensCharter.objects.filter(respondent__date_submitted__range=[start_date, end_date])
+    ]
+    citizens_charter_sheet = workbook.add_worksheet('Citizens Charter')
+    write_data_to_sheet(citizens_charter_sheet, citizens_charter_headers, citizens_charter_data, workbook)
+
+    # Infrastructure Rating data
+    infrastructure_headers = [
+        'Respondent ID', 'Waiting Area Comfort', 'Bathroom Cleanliness', 'Patient Room Comfort',
+        'Transaction Ease', 'Process Compliance', 'Information Accessibility', 'Transaction Time'
+    ]
+    infrastructure_data = [
+        [
+            rating.respondent.id, rating.waiting_area_comfort, rating.bathroom_cleanliness,
+            rating.patient_room_comfort, rating.transaction_ease, rating.process_compliance,
+            rating.information_accessibility, rating.transaction_time
+        ]
+        for rating in InfrastructureRating.objects.filter(respondent__date_submitted__range=[start_date, end_date])
+    ]
+    infrastructure_sheet = workbook.add_worksheet('Infrastructure Rating')
+    write_data_to_sheet(infrastructure_sheet, infrastructure_headers, infrastructure_data, workbook)
+
+    # Patient Interaction Rating data
+    patient_interaction_headers = [
+        'Respondent ID', 'Condition Explanation', 'Cultural Consideration', 'Treatment Choice',
+        'Service Delivery', 'Payment Fairness'
+    ]
+    patient_interaction_data = [
+        [
+            rating.respondent.id, rating.condition_explanation, rating.cultural_consideration,
+            rating.treatment_choice, rating.service_delivery, rating.payment_fairness
+        ]
+        for rating in PatientInteractionRating.objects.filter(respondent__date_submitted__range=[start_date, end_date])
+    ]
+    patient_interaction_sheet = workbook.add_worksheet('Patient Interaction Rating')
+    write_data_to_sheet(patient_interaction_sheet, patient_interaction_headers, patient_interaction_data, workbook)
+
+    # Staff Rating data
+    staff_rating_headers = [
+        'Respondent ID', 'Doctor Rating', 'Nurse Rating', 'Midwife Rating', 'Security Rating',
+        'Radiology Rating', 'Pharmacy Rating', 'Lab Rating', 'Admitting Rating', 'Records Rating',
+        'Billing Rating', 'Cashier Rating', 'Social Rating', 'Food Rating', 'Janitor Rating'
+    ]
+    staff_rating_data = [
+        [
+            rating.respondent.id, rating.doctor_rating, rating.nurse_rating, rating.midwife_rating,
+            rating.security_rating, rating.radiology_rating, rating.pharmacy_rating, rating.lab_rating,
+            rating.admitting_rating, rating.records_rating, rating.billing_rating, rating.cashier_rating,
+            rating.social_rating, rating.food_rating, rating.janitor_rating
+        ]
+        for rating in StaffRating.objects.filter(respondent__date_submitted__range=[start_date, end_date])
+    ]
+    staff_rating_sheet = workbook.add_worksheet('Staff Rating')
+    write_data_to_sheet(staff_rating_sheet, staff_rating_headers, staff_rating_data, workbook)
+
+    # Overall Feedback data
+    overall_feedback_headers = [
+        'Respondent ID', 'Equal Treatment', 'Satisfaction'
+    ]
+    overall_feedback_data = [
+        [
+            feedback.respondent.id, feedback.equal_treatment, feedback.satisfaction
+        ]
+        for feedback in OverallFeedback.objects.filter(respondent__date_submitted__range=[start_date, end_date])
+    ]
+    overall_feedback_sheet = workbook.add_worksheet('Overall Feedback')
+    write_data_to_sheet(overall_feedback_sheet, overall_feedback_headers, overall_feedback_data, workbook)
+
+    # Feedback Classification data
+    feedback_classification_headers = [
+        'Respondent ID', 'Suggestions', 'Concerns', 'Timeliness Positive', 'Timeliness Negative', 'Timeliness Suggestion',
+        'Manpower Positive', 'Manpower Negative', 'Manpower Suggestion', 'Attitude Positive', 'Attitude Negative',
+        'Attitude Suggestion', 'Queueing Positive', 'Queueing Negative', 'Queueing Suggestion', 'Process Positive',
+        'Process Negative', 'Process Suggestion', 'Communication Positive', 'Communication Negative',
+        'Communication Suggestion', 'Cleanliness Positive', 'Cleanliness Negative', 'Cleanliness Suggestion',
+        'Facilities Positive', 'Facilities Negative', 'Facilities Suggestion', 'Environment Positive',
+        'Environment Negative', 'Environment Suggestion', 'Others Positive', 'Others Negative', 'Others Suggestion'
+    ]
+    feedback_classification_data = [
+        [
+            classification.respondent.id, classification.suggestions, classification.concerns,
+            classification.timeliness_positive, classification.timeliness_negative, classification.timeliness_suggestion,
+            classification.manpower_positive, classification.manpower_negative, classification.manpower_suggestion,
+            classification.attitude_positive, classification.attitude_negative, classification.attitude_suggestion,
+            classification.queueing_positive, classification.queueing_negative, classification.queueing_suggestion,
+            classification.process_positive, classification.process_negative, classification.process_suggestion,
+            classification.communication_positive, classification.communication_negative, classification.communication_suggestion,
+            classification.cleanliness_positive, classification.cleanliness_negative, classification.cleanliness_suggestion,
+            classification.facilities_positive, classification.facilities_negative, classification.facilities_suggestion,
+            classification.environment_positive, classification.environment_negative, classification.environment_suggestion,
+            classification.others_positive, classification.others_negative, classification.others_suggestion
+        ]
+        for classification in FeedbackClassification.objects.filter(respondent__date_submitted__range=[start_date, end_date])
+    ]
+    feedback_classification_sheet = workbook.add_worksheet('Feedback Classification')
+    write_data_to_sheet(feedback_classification_sheet, feedback_classification_headers, feedback_classification_data, workbook)
+
+    # Close the workbook.
+    workbook.close()
+
+    return output
+
+
+def feedback_list(request):
+    feedbacks = Feedback.objects.all()
+    for feedback in feedbacks:
+        feedback.is_new = feedback.is_new()
+    return render(request, 'admin/feedback.html', {'feedbacks': feedbacks})
+
